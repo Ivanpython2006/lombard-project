@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Склад" data-en="Warehouse">Склад</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .file-upload-wrap { position: relative; display: block; }
+        .file-upload-input { position: absolute; left: -9999px; opacity: 0; }
+        .file-upload-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 12px 24px; font-size: 13px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: #00b894; background: #fff; border: 2px dashed #00b894;
+            cursor: pointer; font-family: inherit; transition: all 0.15s ease;
+        }
+        .file-upload-btn:hover { background: #00b894; color: #fff; border-style: solid; }
+        .file-upload-name { display: block; margin-top: 8px; font-size: 12px; color: #666; font-style: italic; }
+        body.theme-dark .file-upload-btn { background: #1e1e1e; color: #00d4a8; border-color: #00d4a8; }
+        body.theme-dark .file-upload-btn:hover { background: #00d4a8; color: #111; }
+        body.theme-dark .file-upload-name { color: #999; }
+
+        .actions-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+        .actions-row .action-btn {
+            padding: 8px 12px;
+            font-size: 11px;
+            white-space: nowrap;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
+        <h2 style="margin-bottom:0;" data-ru="Склад" data-en="Warehouse">Склад</h2>
+        <a href="/admin/warehouse/export" class="btn" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</a>
+    </div>
+
+    <form class="filter-bar" method="get" th:action="@{/admin/warehouse}" id="filterForm">
+        <input type="text" name="query" th:value="${query}"
+               data-ru="Поиск по номеру, вещи или клиенту..."
+               data-en="Search by number, item or client..."
+               placeholder="Поиск по номеру, вещи или клиенту..."
+               oninput="autoSubmit()">
+        <span class="filter-divider"></span>
+        <select name="sort" onchange="this.form.submit()">
+            <option value="id" th:selected="${sort == 'id'}" data-ru="Сначала новые" data-en="Newest first">Сначала новые</option>
+            <option value="date_asc" th:selected="${sort == 'date_asc'}" data-ru="Сначала старые" data-en="Oldest first">Сначала старые</option>
+            <option value="number" th:selected="${sort == 'number'}" data-ru="По номеру" data-en="By number">По номеру</option>
+            <option value="item" th:selected="${sort == 'item'}" data-ru="По вещи" data-en="By item">По вещи</option>
+            <option value="price" th:selected="${sort == 'price'}" data-ru="По оценке" data-en="By price">По оценке</option>
+            <option value="client" th:selected="${sort == 'client'}" data-ru="По клиенту" data-en="By client">По клиенту</option>
+        </select>
+    </form>
+
+    <div class="table-wrap" th:if="${not #lists.isEmpty(loans)}">
+        <table>
+            <thead>
+            <tr>
+                <th data-ru="Номер" data-en="Number">Номер</th>
+                <th data-ru="Вещь" data-en="Item">Вещь</th>
+                <th data-ru="Оценка" data-en="Valuation">Оценка</th>
+                <th data-ru="Клиент" data-en="Client">Клиент</th>
+                <th data-ru="Статус" data-en="Status">Статус</th>
+                <th data-ru="Действия" data-en="Actions">Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="loan : ${loans}">
+                <td>
+                    <b th:if="${not #lists.isEmpty(loan.collaterals)}"
+                       th:text="${loan.collaterals[0].itemNumber}"
+                       style="color:#00b894;"></b>
+                    <span th:if="${#lists.isEmpty(loan.collaterals)}">-</span>
+                </td>
+                <td>
+                    <button th:if="${not #lists.isEmpty(loan.collaterals)}"
+                            type="button"
+                            class="item-link"
+                            th:attr="data-loan-id=${loan.id}"
+                            onclick="openLoanFromItem(this)"
+                            th:text="${loan.collaterals[0].name} ?: '-'"></button>
+                    <span th:if="${#lists.isEmpty(loan.collaterals)}">-</span>
+                </td>
+                <td>
+                    <span th:if="${not #lists.isEmpty(loan.collaterals) and loan.collaterals[0].estimatedPrice != null}"
+                          th:text="${#numbers.formatDecimal(loan.collaterals[0].estimatedPrice, 1, 2)} + ' ₽'"></span>
+                    <span th:if="${#lists.isEmpty(loan.collaterals) or loan.collaterals[0].estimatedPrice == null}">-</span>
+                </td>
+                <td th:text="${loan.client != null ? loan.client.fullName : '-'}"></td>
+                <td>
+                    <span class="status-text status-instock" th:if="${loan.status == 'На складе'}"
+                          data-ru="На складе" data-en="In Stock">На складе</span>
+                    <span class="status-text" th:if="${loan.status != 'На складе'}" th:text="${loan.status}"></span>
+                </td>
+                <td>
+                    <div class="actions-row">
+                        <button type="button"
+                                class="action-btn"
+                                th:attr="data-id=${loan.id},
+                                         data-name=${not #lists.isEmpty(loan.collaterals) ? loan.collaterals[0].name : ''},
+                                         data-desc=${not #lists.isEmpty(loan.collaterals) ? loan.collaterals[0].description : ''},
+                                         data-price=${not #lists.isEmpty(loan.collaterals) and loan.collaterals[0].estimatedPrice != null ? loan.collaterals[0].estimatedPrice : ''}"
+                                onclick="openEditModal(this)"
+                                data-ru="Редактировать" data-en="Edit">Редактировать</button>
+
+                        <button type="button"
+                                class="action-btn approve"
+                                th:attr="data-id=${loan.id},
+                                         data-name=${not #lists.isEmpty(loan.collaterals) ? loan.collaterals[0].name : ''},
+                                         data-desc=${not #lists.isEmpty(loan.collaterals) ? loan.collaterals[0].description : ''},
+                                         data-price=${not #lists.isEmpty(loan.collaterals) and loan.collaterals[0].estimatedPrice != null ? loan.collaterals[0].estimatedPrice : ''}"
+                                onclick="openPublishModal(this)"
+                                data-ru="Выложить в магазин" data-en="Publish to Shop">Выложить в магазин</button>
+
+                        <form th:if="${isAdmin}"
+                              th:action="@{/admin/warehouse/{id}/delete(id=${loan.id})}" method="post"
+                              style="display:inline; margin:0;"
+                              onsubmit="return openConfirmForm(this, 'Удалить залог безвозвратно? История займа пропадет. Это действие нельзя отменить.', 'Удалить')">
+                            <button type="submit" class="action-btn reject"
+                                    data-ru="Удалить" data-en="Delete">Удалить</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(loans)}"
+         data-ru="Склад пуст. Товаров со статусом «На складе» нет."
+         data-en="The warehouse is empty.">
+        Склад пуст. Товаров со статусом «На складе» нет.
+    </div>
+
+    <!-- модалка редактирования -->
+    <div class="confirm-modal" id="editModal" style="background: rgba(0,0,0,0.5);">
+        <div class="confirm-box" style="max-width: 520px; text-align: left;">
+            <div class="confirm-title" style="text-align:center;"
+                 data-ru="Редактировать товар" data-en="Edit Item">Редактировать товар</div>
+            <form method="post" id="editForm" enctype="multipart/form-data">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="form-group">
+                    <label for="editName" data-ru="Название вещи" data-en="Item Name">Название вещи</label>
+                    <input type="text" id="editName" name="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDesc" data-ru="Описание" data-en="Description">Описание</label>
+                    <textarea id="editDesc" name="itemDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editPrice" data-ru="Оценка (₽)" data-en="Valuation (₽)">Оценка (₽)</label>
+                    <input type="number" id="editPrice" name="price" step="0.01" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPhotos" data-ru="Добавить фото (можно несколько)" data-en="Add Photos (multiple)">Добавить фото (можно несколько)</label>
+                    <label class="file-upload-wrap" for="editPhotos">
+                        <input type="file" id="editPhotos" name="photos"
+                               accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple
+                               class="file-upload-input"
+                               onchange="showEditSelectedFiles(this)">
+                        <span class="file-upload-btn">
+                            <span data-ru="Выберите фото" data-en="Choose Photo">Выберите фото</span>
+                        </span>
+                    </label>
+                    <span class="file-upload-name" id="editFileName"
+                          data-ru="Файл не выбран" data-en="No file chosen">Файл не выбран</span>
+                </div>
+                <div class="confirm-actions" style="margin-top: 20px; justify-content: space-between;">
+                    <button type="button" class="confirm-btn cancel" onclick="closeEditModal()"
+                            data-ru="Отмена" data-en="Cancel">Отмена</button>
+                    <button type="submit" class="confirm-btn danger"
+                            data-ru="Сохранить" data-en="Save">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- модалка выложить -->
+    <div class="confirm-modal" id="publishModal" style="background: rgba(0,0,0,0.5);">
+        <div class="confirm-box" style="max-width: 520px; text-align: left;">
+            <div class="confirm-title" style="text-align:center;"
+                 data-ru="Выложить в магазин" data-en="Publish to Shop">Выложить в магазин</div>
+            <form method="post" id="publishForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="form-group">
+                    <label for="publishName" data-ru="Название вещи" data-en="Item Name">Название вещи</label>
+                    <input type="text" id="publishName" name="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label for="publishDesc" data-ru="Описание" data-en="Description">Описание</label>
+                    <textarea id="publishDesc" name="itemDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="publishPrice" data-ru="Цена продажи (₽)" data-en="Sale Price (₽)">Цена продажи (₽)</label>
+                    <input type="number" id="publishPrice" name="price" step="0.01" min="1" required>
+                </div>
+                <div class="confirm-actions" style="margin-top: 20px; justify-content: space-between;">
+                    <button type="button" class="confirm-btn cancel" onclick="closePublishModal()"
+                            data-ru="Отмена" data-en="Cancel">Отмена</button>
+                    <button type="submit" class="confirm-btn danger"
+                            data-ru="Выложить" data-en="Publish">Выложить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    let autoSubmitTimer = null;
+    function autoSubmit() {
+        clearTimeout(autoSubmitTimer);
+        autoSubmitTimer = setTimeout(function() {
+            document.getElementById('filterForm').submit();
+        }, 500);
+    }
+
+    function openLoanFromItem(btn) {
+        const id = btn.getAttribute('data-loan-id');
+        if (id) window.location.href = '/loans/' + id;
+    }
+
+    function showEditSelectedFiles(input) {
+        const nameEl = document.getElementById('editFileName');
+        if (!nameEl) return;
+        const isEn = (localStorage.getItem('app_lang') === 'en');
+        if (input.files && input.files.length > 0) {
+            nameEl.textContent = (input.files.length === 1)
+                ? input.files[0].name
+                : (isEn ? 'Files selected: ' + input.files.length
+                        : 'Выбрано файлов: ' + input.files.length);
+            nameEl.style.color = '#00b894';
+            nameEl.style.fontStyle = 'normal';
+            nameEl.style.fontWeight = '600';
+        } else {
+            nameEl.textContent = isEn ? 'No file chosen' : 'Файл не выбран';
+            nameEl.style.color = '#666';
+            nameEl.style.fontStyle = 'italic';
+            nameEl.style.fontWeight = 'normal';
+        }
+    }
+
+    function openEditModal(btn) {
+        const id = btn.getAttribute('data-id');
+        document.getElementById('editForm').action = '/admin/warehouse/' + id + '/save';
+        document.getElementById('editName').value = btn.getAttribute('data-name') || '';
+        document.getElementById('editDesc').value = btn.getAttribute('data-desc') || '';
+        document.getElementById('editPrice').value = btn.getAttribute('data-price') || '';
+
+        const fileInput = document.getElementById('editPhotos');
+        if (fileInput) fileInput.value = '';
+        const nameEl = document.getElementById('editFileName');
+        if (nameEl) {
+            const isEn = (localStorage.getItem('app_lang') === 'en');
+            nameEl.textContent = isEn ? 'No file chosen' : 'Файл не выбран';
+            nameEl.style.color = '#666';
+            nameEl.style.fontStyle = 'italic';
+            nameEl.style.fontWeight = 'normal';
+        }
+
+        document.getElementById('editModal').classList.add('active');
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').classList.remove('active');
+    }
+    document.getElementById('editModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditModal();
+    });
+
+    function openPublishModal(btn) {
+        const id = btn.getAttribute('data-id');
+        document.getElementById('publishForm').action = '/admin/warehouse/' + id + '/publish';
+        document.getElementById('publishName').value = btn.getAttribute('data-name') || '';
+        document.getElementById('publishDesc').value = btn.getAttribute('data-desc') || '';
+        document.getElementById('publishPrice').value = btn.getAttribute('data-price') || '';
+        document.getElementById('publishModal').classList.add('active');
+    }
+    function closePublishModal() {
+        document.getElementById('publishModal').classList.remove('active');
+    }
+    document.getElementById('publishModal').addEventListener('click', function(e) {
+        if (e.target === this) closePublishModal();
+    });
+</script>
+
+</body>
+</html>

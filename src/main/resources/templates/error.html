@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Ошибка" data-en="Error">Ошибка</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body class="error-page">
+<div class="error-box">
+    <div class="error-code">!</div>
+    <h1 th:text="${error} ?: 'Ошибка'"
+        data-ru="Ошибка" data-en="Error">Ошибка</h1>
+    <p th:text="${message} ?: 'Что-то пошло не так. Попробуйте вернуться на главную.'"
+       data-ru="Что-то пошло не так. Попробуйте вернуться на главную."
+       data-en="Something went wrong. Try to go back to the home page.">
+        Что-то пошло не так. Попробуйте вернуться на главную.
+    </p>
+    <a href="/" class="btn" data-ru="← Вернуться на главную" data-en="← Back to Home">← Вернуться на главную</a>
+</div>
+</body>
+</html>

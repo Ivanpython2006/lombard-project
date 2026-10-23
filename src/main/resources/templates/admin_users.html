@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Пользователи" data-en="Users">Пользователи</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
+        <h2 style="margin-bottom:0;" data-ru="Управление пользователями" data-en="User Management">Управление пользователями</h2>
+        <div style="display:flex; gap:12px; align-items:stretch; flex-wrap:wrap;">
+            <a href="/admin/users/new" class="btn-green" data-ru="+ Создать работника" data-en="+ Create Employee">+ Создать работника</a>
+            <a href="/admin/users/export" class="btn" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</a>
+        </div>
+    </div>
+
+    <form class="filter-bar" th:action="@{/admin/users}" method="get" id="filterForm">
+        <input type="text" name="query" th:value="${query}"
+               data-ru="Поиск по номеру или логину..."
+               data-en="Search by number or login..."
+               placeholder="Поиск по номеру или логину..."
+               oninput="autoSubmit()">
+        <span class="filter-divider"></span>
+        <select name="role" onchange="this.form.submit()">
+            <option value="" data-ru="Все роли" data-en="All roles">Все роли</option>
+            <option value="ADMIN" th:selected="${role == 'ADMIN'}" data-ru="Администратор" data-en="Administrator">Администратор</option>
+            <option value="MANAGER" th:selected="${role == 'MANAGER'}" data-ru="Менеджер" data-en="Manager">Менеджер</option>
+            <option value="CLIENT" th:selected="${role == 'CLIENT'}" data-ru="Клиент" data-en="Client">Клиент</option>
+        </select>
+        <span class="filter-divider"></span>
+        <select name="sort" onchange="this.form.submit()">
+            <option value="id" th:selected="${sort == 'id'}" data-ru="По порядку" data-en="By order">По порядку</option>
+            <option value="number" th:selected="${sort == 'number'}" data-ru="По номеру" data-en="By number">По номеру</option>
+            <option value="username" th:selected="${sort == 'username'}" data-ru="По логину" data-en="By login">По логину</option>
+            <option value="role" th:selected="${sort == 'role'}" data-ru="По роли" data-en="By role">По роли</option>
+        </select>
+    </form>
+
+    <div class="table-wrap" th:if="${not #lists.isEmpty(users)}">
+        <table>
+            <thead>
+            <tr>
+                <th data-ru="Номер" data-en="Number">Номер</th>
+                <th data-ru="Логин" data-en="Login">Логин</th>
+                <th data-ru="Роль" data-en="Role">Роль</th>
+                <th data-ru="Изменить роль" data-en="Change Role">Изменить роль</th>
+                <th data-ru="Удалить" data-en="Delete">Удалить</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}" th:with="isMe=${user.username == #authentication.getName()}">
+                <td><b th:text="${user.userNumber}" style="color:#00b894;"></b></td>
+                <td>
+                    <button th:if="${user.role == 'MANAGER'}"
+                            type="button"
+                            class="item-link"
+                            th:attr="data-id=${user.id}"
+                            onclick="openManager(this)"
+                            th:text="${user.username}"></button>
+                    <span th:unless="${user.role == 'MANAGER'}" th:text="${user.username}"></span>
+                    <span th:if="${isMe}" style="color:#00b894; font-size:11px; margin-left:6px; font-weight:700;"
+                          data-ru="(это вы)" data-en="(you)">(это вы)</span>
+                </td>
+                <td th:text="${user.role}"></td>
+                <td>
+                    <form th:if="${!isMe}"
+                          style="display:flex; gap:8px; justify-content:center;"
+                          th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post">
+                        <select name="role" onchange="this.form.submit()">
+                            <option value="ADMIN" th:selected="${user.role == 'ADMIN'}" data-ru="Администратор" data-en="Administrator">Администратор</option>
+                            <option value="MANAGER" th:selected="${user.role == 'MANAGER'}" data-ru="Менеджер" data-en="Manager">Менеджер</option>
+                            <option value="CLIENT" th:selected="${user.role == 'CLIENT'}" data-ru="Клиент" data-en="Client">Клиент</option>
+                        </select>
+                    </form>
+                    <span th:if="${isMe}" style="color:#ccc; font-size:12px;"
+                          data-ru="-" data-en="-">-</span>
+                </td>
+                <td>
+                    <form th:if="${!isMe}"
+                          th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post"
+                          style="display:inline;"
+                          onsubmit="return openConfirmForm(this, 'Удалить пользователя?', 'Удалить')">
+                        <button type="submit" class="btn-red"
+                                style="padding:6px 14px; font-size:12px;"
+                                data-ru="Удалить" data-en="Delete">Удалить</button>
+                    </form>
+                    <span th:if="${isMe}" style="color:#ccc;"
+                          data-ru="-" data-en="-">-</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(users)}" data-ru="Пользователей не найдено." data-en="No users found.">Пользователей не найдено.</div>
+
+    <div class="pagination-wrap" th:if="${totalPages != null and totalPages > 1}">
+        <div class="pagination-info">
+            <span data-ru="Всего пользователей" data-en="Total users">Всего пользователей</span>:
+            <span th:text="${totalItems}"></span>,
+            <span data-ru="страница" data-en="page">страница</span>
+            <span th:text="${currentPage}"></span>
+            <span data-ru="из" data-en="of">из</span>
+            <span th:text="${totalPages}"></span>
+        </div>
+        <a th:if="${currentPage > 1}" th:href="@{/admin/users(page=${currentPage - 1}, query=${query}, role=${role}, sort=${sort})}" class="page-btn">
+            ← <span data-ru="Назад" data-en="Back">Назад</span>
+        </a>
+        <span th:if="${currentPage <= 1}" class="page-btn disabled">
+            ← <span data-ru="Назад" data-en="Back">Назад</span>
+        </span>
+        <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/admin/users(page=${i}, query=${query}, role=${role}, sort=${sort})}"
+           class="page-btn" th:classappend="${i == currentPage} ? 'active' : ''" th:text="${i}"></a>
+        <a th:if="${currentPage < totalPages}" th:href="@{/admin/users(page=${currentPage + 1}, query=${query}, role=${role}, sort=${sort})}" class="page-btn">
+            <span data-ru="Вперед" data-en="Next">Вперед</span> →
+        </a>
+        <span th:if="${currentPage >= totalPages}" class="page-btn disabled">
+            <span data-ru="Вперед" data-en="Next">Вперед</span> →
+        </span>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    let autoSubmitTimer = null;
+    function autoSubmit() {
+        clearTimeout(autoSubmitTimer);
+        autoSubmitTimer = setTimeout(function() {
+            document.getElementById('filterForm').submit();
+        }, 500);
+    }
+    function openManager(btn) {
+        const id = btn.getAttribute('data-id');
+        window.location.href = '/admin/managers/' + id;
+    }
+</script>
+
+</body>
+</html>

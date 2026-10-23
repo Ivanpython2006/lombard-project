@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Регистрация" data-en="Registration">Регистрация</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body class="auth-page">
+
+<div class="home-switchers">
+    <div class="switcher-col">
+        <div class="switcher-label" data-ru="Язык" data-en="Language">Язык</div>
+        <div class="switcher-row">
+            <button type="button" class="flag-btn" data-lang="ru" title="Русский">
+                <svg viewBox="0 0 9 6" width="28" height="19" preserveAspectRatio="none">
+                    <rect width="9" height="2" fill="#fff"/>
+                    <rect y="2" width="9" height="2" fill="#0039A6"/>
+                    <rect y="4" width="9" height="2" fill="#D52B1E"/>
+                </svg>
+            </button>
+            <button type="button" class="flag-btn" data-lang="en" title="English">
+                <svg viewBox="0 0 7410 3900" width="28" height="19" preserveAspectRatio="none">
+                    <rect width="7410" height="3900" fill="#fff"/>
+                    <g fill="#B22234">
+                        <rect width="7410" height="300" y="0"/>
+                        <rect width="7410" height="300" y="600"/>
+                        <rect width="7410" height="300" y="1200"/>
+                        <rect width="7410" height="300" y="1800"/>
+                        <rect width="7410" height="300" y="2400"/>
+                        <rect width="7410" height="300" y="3000"/>
+                        <rect width="7410" height="300" y="3600"/>
+                    </g>
+                    <rect width="2964" height="2100" fill="#3C3B6E"/>
+                    <g fill="#fff">
+                        <circle cx="300" cy="240" r="60"/><circle cx="600" cy="240" r="60"/><circle cx="900" cy="240" r="60"/>
+                        <circle cx="1200" cy="240" r="60"/><circle cx="1500" cy="240" r="60"/><circle cx="1800" cy="240" r="60"/>
+                        <circle cx="2100" cy="240" r="60"/><circle cx="2400" cy="240" r="60"/><circle cx="2700" cy="240" r="60"/>
+                        <circle cx="450" cy="480" r="60"/><circle cx="750" cy="480" r="60"/><circle cx="1050" cy="480" r="60"/>
+                        <circle cx="1350" cy="480" r="60"/><circle cx="1650" cy="480" r="60"/><circle cx="1950" cy="480" r="60"/>
+                        <circle cx="2250" cy="480" r="60"/><circle cx="2550" cy="480" r="60"/>
+                        <circle cx="300" cy="720" r="60"/><circle cx="600" cy="720" r="60"/><circle cx="900" cy="720" r="60"/>
+                        <circle cx="1200" cy="720" r="60"/><circle cx="1500" cy="720" r="60"/><circle cx="1800" cy="720" r="60"/>
+                        <circle cx="2100" cy="720" r="60"/><circle cx="2400" cy="720" r="60"/><circle cx="2700" cy="720" r="60"/>
+                        <circle cx="450" cy="960" r="60"/><circle cx="750" cy="960" r="60"/><circle cx="1050" cy="960" r="60"/>
+                        <circle cx="1350" cy="960" r="60"/><circle cx="1650" cy="960" r="60"/><circle cx="1950" cy="960" r="60"/>
+                        <circle cx="2250" cy="960" r="60"/><circle cx="2550" cy="960" r="60"/>
+                    </g>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="switcher-col">
+        <div class="switcher-label" data-ru="Тема" data-en="Theme">Тема</div>
+        <div class="switcher-row">
+            <button type="button" class="theme-btn" data-theme="light" title="Светлая">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                </svg>
+            </button>
+            <button type="button" class="theme-btn" data-theme="dark" title="Темная">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="auth-box">
+    <h2 data-ru="Регистрация" data-en="Registration">Регистрация</h2>
+    <form th:action="@{/register}" method="post" id="registerForm">
+        <div class="form-group">
+            <label for="username" data-ru="Логин" data-en="Login">Логин</label>
+            <input type="text" id="username" name="username"
+                   required autofocus maxlength="30"
+                   pattern="[A-Za-z0-9_]+"
+                   title="Только английские буквы, цифры и _">
+        </div>
+        <div class="form-group">
+            <label for="password" data-ru="Пароль" data-en="Password">Пароль</label>
+            <input type="password" id="password" name="password"
+                   data-ru="Введите пароль" data-en="Enter password"
+                   placeholder="Введите пароль" required minlength="6" maxlength="50">
+        </div>
+
+        <div class="form-group">
+            <label for="lastName" data-ru="Фамилия" data-en="Last Name">Фамилия</label>
+            <input type="text" id="lastName" name="lastName"
+                   placeholder="Фамилия" required minlength="2" maxlength="40"
+                   pattern="[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\-]+"
+                   title="Только буквы, минимум 2 символа">
+        </div>
+        <div class="form-group">
+            <label for="firstName" data-ru="Имя" data-en="First Name">Имя</label>
+            <input type="text" id="firstName" name="firstName"
+                   placeholder="Имя" required minlength="2" maxlength="40"
+                   pattern="[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\-]+"
+                   title="Только буквы, минимум 2 символа">
+        </div>
+        <div class="form-group">
+            <label for="middleName" data-ru="Отчество" data-en="Middle Name">Отчество</label>
+            <input type="text" id="middleName" name="middleName"
+                   placeholder="Отчество" minlength="2" maxlength="40"
+                   pattern="[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\-]+"
+                   title="Только буквы, минимум 2 символа">
+        </div>
+
+        <div class="form-group">
+            <label for="email" data-ru="Email" data-en="Email">Email</label>
+            <input type="email" id="email" name="email"
+                   data-ru="Введите email" data-en="Enter email"
+                   placeholder="Введите email" required maxlength="80">
+        </div>
+
+        <div class="form-group">
+            <label for="phone" data-ru="Телефон" data-en="Phone">Телефон</label>
+            <input type="tel" id="phone" name="phone"
+                   required maxlength="12">
+            <div class="hint" data-ru="Формат: +7XXXXXXXXXX (11 цифр)"
+                 data-en="Format: +7XXXXXXXXXX (11 digits)">
+                Формат: +7XXXXXXXXXX (11 цифр)
+            </div>
+            <div class="field-error" id="phoneError"
+                 data-ru="Введите телефон в формате +7XXXXXXXXXX"
+                 data-en="Enter phone in format +7XXXXXXXXXX">
+                Введите телефон в формате +7XXXXXXXXXX
+            </div>
+        </div>
+
+        <button type="submit" class="btn-green" id="submitBtn"
+                data-ru="Зарегистрироваться" data-en="Register">Зарегистрироваться</button>
+    </form>
+
+    <div class="error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="auth-link">
+        <span data-ru="Уже есть аккаунт?" data-en="Already have an account?">Уже есть аккаунт?</span>
+        <a th:href="@{/login}" data-ru="Войти" data-en="Sign In">Войти</a>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    const phoneInput = document.getElementById('phone');
+    const phoneError = document.getElementById('phoneError');
+    const form = document.getElementById('registerForm');
+
+    phoneInput.addEventListener('input', function() {
+        let cleaned = this.value.replace(/[^\d+]/g, '');
+        cleaned = cleaned.replace(/(?!^)\+/g, '');
+        cleaned = cleaned.slice(0, 12);
+        this.value = cleaned;
+
+        const digits = cleaned.replace(/\D/g, '');
+        const isValid = digits.length === 11 && digits.startsWith('7');
+
+        if (digits.length === 0) {
+            this.classList.remove('invalid', 'valid');
+            phoneError.classList.remove('show');
+        } else if (isValid) {
+            this.classList.remove('invalid');
+            this.classList.add('valid');
+            phoneError.classList.remove('show');
+        } else {
+            this.classList.remove('valid');
+            this.classList.add('invalid');
+            phoneError.classList.add('show');
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        const digits = phoneInput.value.replace(/\D/g, '');
+        if (digits.length !== 11 || !digits.startsWith('7')) {
+            e.preventDefault();
+            phoneError.classList.add('show');
+            phoneInput.classList.add('invalid');
+            phoneInput.focus();
+            return false;
+        }
+        phoneInput.value = '+' + digits;
+    });
+
+    (function() {
+        const savedTheme = localStorage.getItem('app_theme') || 'light';
+        const savedLang  = localStorage.getItem('app_lang')  || 'ru';
+        if (savedTheme === 'dark') document.body.classList.add('theme-dark');
+        document.documentElement.setAttribute('lang', savedLang);
+
+        function applyLanguage(lang) {
+            const toEn = (lang === 'en');
+            document.querySelectorAll('[data-ru][data-en]').forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = toEn ? el.dataset.en : el.dataset.ru;
+                    return;
+                }
+                let textNode = null;
+                for (let i = 0; i < el.childNodes.length; i++) {
+                    const node = el.childNodes[i];
+                    if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                        textNode = node; break;
+                    }
+                }
+                const value = toEn ? el.dataset.en : el.dataset.ru;
+                if (textNode) {
+                    const leading = textNode.textContent.match(/^\s*/)[0];
+                    const trailing = textNode.textContent.match(/\s*$/)[0];
+                    textNode.textContent = leading + value + trailing;
+                } else if (el.children.length === 0) {
+                    el.textContent = value;
+                }
+            });
+            const titleEl = document.querySelector('title');
+            if (titleEl && titleEl.dataset && titleEl.dataset.ru && titleEl.dataset.en) {
+                titleEl.textContent = toEn ? titleEl.dataset.en : titleEl.dataset.ru;
+            }
+        }
+        window.applyLanguage = applyLanguage;
+
+        function applyOnReady() {
+            applyLanguage(localStorage.getItem('app_lang') || 'ru');
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyOnReady);
+        } else {
+            applyOnReady();
+        }
+        window.addEventListener('load', applyOnReady);
+
+        function updateHomeSwitchers() {
+            const th = localStorage.getItem('app_theme') || 'light';
+            const lg = localStorage.getItem('app_lang')  || 'ru';
+            document.querySelectorAll('.home-switchers .theme-btn').forEach(b =>
+                b.classList.toggle('selected', b.dataset.theme === th));
+            document.querySelectorAll('.home-switchers .flag-btn').forEach(b =>
+                b.classList.toggle('selected', b.dataset.lang === lg));
+        }
+        updateHomeSwitchers();
+
+        document.querySelectorAll('.home-switchers .theme-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const theme = this.dataset.theme;
+                document.body.classList.toggle('theme-dark', theme === 'dark');
+                localStorage.setItem('app_theme', theme);
+                updateHomeSwitchers();
+            });
+        });
+        document.querySelectorAll('.home-switchers .flag-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const lang = this.dataset.lang;
+                localStorage.setItem('app_lang', lang);
+                document.documentElement.setAttribute('lang', lang);
+                applyLanguage(lang);
+                updateHomeSwitchers();
+            });
+        });
+    })();
+</script>
+
+</body>
+</html>

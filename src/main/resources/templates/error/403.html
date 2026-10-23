@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Доступ запрещен" data-en="Access Denied">Доступ запрещен</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body class="error-page">
+<div class="error-box">
+    <div class="error-code error-code-danger">403</div>
+    <h1 data-ru="Доступ запрещен" data-en="Access Denied">Доступ запрещен</h1>
+    <p data-ru="У вас нет прав для доступа к этому разделу. Если вы считаете, что это ошибка - обратитесь к администратору."
+       data-en="You don't have permission to access this section. If you believe this is an error - contact the administrator.">
+        У вас нет прав для доступа к этому разделу.<br>
+        Если вы считаете, что это ошибка - обратитесь к администратору.
+    </p>
+    <a href="/" class="btn" data-ru="← Вернуться на главную" data-en="← Back to Home">← Вернуться на главную</a>
+</div>
+</body>
+</html>

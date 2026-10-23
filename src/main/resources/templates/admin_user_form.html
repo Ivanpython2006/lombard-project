@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Создать работника" data-en="Create Employee">Создать работника</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar-center">
+    <div class="form-container" style="max-width:500px;">
+        <h2 data-ru="Создать работника" data-en="Create Employee">Создать работника</h2>
+
+        <form th:action="@{/admin/users/new}" method="post">
+            <div class="form-group">
+                <label for="username" data-ru="Логин" data-en="Login">Логин</label>
+                <input type="text" id="username" name="username"
+                       data-ru="Введите логин" data-en="Enter login"
+                       placeholder="Введите логин" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password" data-ru="Пароль" data-en="Password">Пароль</label>
+                <input type="password" id="password" name="password"
+                       data-ru="Введите пароль" data-en="Enter password"
+                       placeholder="Введите пароль" required>
+            </div>
+            <div class="form-group">
+                <label for="role" data-ru="Роль" data-en="Role">Роль</label>
+                <select id="role" name="role" required>
+                    <option value="MANAGER" data-ru="Менеджер" data-en="Manager">Менеджер</option>
+                    <option value="ADMIN" data-ru="Администратор" data-en="Administrator">Администратор</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-green"
+                    data-ru="Создать" data-en="Create">Создать</button>
+        </form>
+
+        <div class="error" th:if="${error}" th:text="${error}" style="text-align:center; margin-top:12px;"></div>
+
+        <a href="/admin/users" class="btn-back" style="display:block; width:fit-content; margin:20px auto 0;"
+           data-ru="← Назад к пользователям" data-en="← Back to Users">← Назад к пользователям</a>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Заказы" data-en="Orders">Заказы</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+        <h2 style="margin-bottom:0;" data-ru="Заказы" data-en="Orders">Заказы</h2>
+    </div>
+
+    <form class="filter-bar" method="get" th:action="@{/admin/orders}" id="filterForm">
+        <input type="text" name="query" th:value="${query}"
+               data-ru="Поиск по номеру, клиенту или телефону..."
+               data-en="Search by number, client or phone..."
+               placeholder="Поиск по номеру, клиенту или телефону..."
+               oninput="autoSubmit()">
+        <span class="filter-divider"></span>
+
+        <select name="status" onchange="this.form.submit()">
+            <option value="" data-ru="Все статусы" data-en="All statuses">Все статусы</option>
+            <option value="Оплачен" th:selected="${filterStatus == 'Оплачен'}" data-ru="Оплачен" data-en="Paid">Оплачен</option>
+            <option value="Собран" th:selected="${filterStatus == 'Собран'}" data-ru="Собран" data-en="Assembled">Собран</option>
+            <option value="Доставлен" th:selected="${filterStatus == 'Доставлен'}" data-ru="Доставлен" data-en="Delivered">Доставлен</option>
+            <option value="Отменен" th:selected="${filterStatus == 'Отменен'}" data-ru="Отменен" data-en="Cancelled">Отменен</option>
+        </select>
+        <span class="filter-divider"></span>
+
+        <select name="delivery" onchange="this.form.submit()">
+            <option value="" data-ru="Все способы" data-en="All methods">Все способы</option>
+            <option value="DELIVERY" th:selected="${filterDelivery == 'DELIVERY'}" data-ru="Доставка" data-en="Delivery">Доставка</option>
+            <option value="PICKUP" th:selected="${filterDelivery == 'PICKUP'}" data-ru="Самовывоз" data-en="Pickup">Самовывоз</option>
+        </select>
+        <span class="filter-divider"></span>
+
+        <select name="sort" onchange="this.form.submit()">
+            <option value="date_desc" th:selected="${sort == 'date_desc'}" data-ru="Сначала новые" data-en="Newest first">Сначала новые</option>
+            <option value="date_asc" th:selected="${sort == 'date_asc'}" data-ru="Сначала старые" data-en="Oldest first">Сначала старые</option>
+            <option value="number" th:selected="${sort == 'number'}" data-ru="По номеру" data-en="By number">По номеру</option>
+            <option value="client" th:selected="${sort == 'client'}" data-ru="По клиенту" data-en="By client">По клиенту</option>
+            <option value="total" th:selected="${sort == 'total'}" data-ru="По сумме" data-en="By total">По сумме</option>
+        </select>
+    </form>
+
+    <div class="table-wrap" th:if="${not #lists.isEmpty(orders)}">
+        <table>
+            <thead>
+            <tr>
+                <th data-ru="Номер" data-en="Number">Номер</th>
+                <th data-ru="Дата" data-en="Date">Дата</th>
+                <th data-ru="Клиент" data-en="Client">Клиент</th>
+                <th data-ru="Телефон" data-en="Phone">Телефон</th>
+                <th data-ru="Способ" data-en="Method">Способ</th>
+                <th data-ru="Адрес" data-en="Address">Адрес</th>
+                <th data-ru="Товаров" data-en="Items">Товаров</th>
+                <th data-ru="Сумма" data-en="Total">Сумма</th>
+                <th data-ru="Статус" data-en="Status">Статус</th>
+                <th data-ru="Действия" data-en="Actions">Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${orders}">
+                <td><b th:text="${order.orderNumber}" style="color:#00b894;"></b></td>
+                <td th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
+                <td th:text="${order.client != null ? order.client.fullName : '-'}"></td>
+                <td th:text="${order.contactPhone} ?: '-'"></td>
+                <td>
+                    <span th:if="${order.deliveryType == 'DELIVERY'}" data-ru="Доставка" data-en="Delivery">Доставка</span>
+                    <span th:if="${order.deliveryType == 'PICKUP'}" data-ru="Самовывоз" data-en="Pickup">Самовывоз</span>
+                </td>
+                <td style="max-width:280px; word-break:break-word; text-align:left;"
+                    th:text="${order.fullAddress}"></td>
+                <td th:text="${#lists.size(order.items)}"></td>
+                <td><b th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)} + ' ₽'"></b></td>
+                <td>
+                    <span class="status-badge status-paid" th:if="${order.status == 'Оплачен'}" data-ru="Оплачен" data-en="Paid">Оплачен</span>
+                    <span class="status-badge status-assembled" th:if="${order.status == 'Собран'}" data-ru="Собран" data-en="Assembled">Собран</span>
+                    <span class="status-badge status-delivered" th:if="${order.status == 'Доставлен'}" data-ru="Доставлен" data-en="Delivered">Доставлен</span>
+                    <span class="status-badge status-cancelled" th:if="${order.status == 'Отменен'}" data-ru="Отменен" data-en="Cancelled">Отменен</span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn"
+                       style="padding:6px 14px; font-size:12px;"
+                       data-ru="Открыть" data-en="Open">Открыть</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(orders)}"
+         data-ru="Заказов не найдено." data-en="No orders found.">Заказов не найдено.</div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    let autoSubmitTimer = null;
+    function autoSubmit() {
+        clearTimeout(autoSubmitTimer);
+        autoSubmitTimer = setTimeout(function() {
+            document.getElementById('filterForm').submit();
+        }, 500);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Ломбард - Главная" data-en="Lombard - Home">Ломбард - Главная</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .client-dashboard {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 30px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .dashboard-card {
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        .dashboard-card .label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .dashboard-card .value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #000;
+            letter-spacing: -0.5px;
+        }
+        .dashboard-card .value.accent { color: #00b894; }
+        .dashboard-card .value.danger { color: #e74c3c; }
+
+        /* Стиль для бейджей на главной */
+        .badge-home {
+            background-color: #00b894;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            min-width: 24px;
+            text-align: center;
+        }
+        .badge-home.red {
+            background-color: #e74c3c;
+        }
+
+        body.theme-dark .dashboard-card { background: #1e1e1e; border-color: #2a2a2a; }
+        body.theme-dark .dashboard-card .value { color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="bg-wheels" aria-hidden="true">
+    <svg class="wheel-center" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="200,20 360,110 360,290 200,380 40,290 40,110"
+                 fill="none" stroke="#00b894" stroke-width="14" stroke-linejoin="round"/>
+        <line x1="200" y1="200" x2="200" y2="20"  stroke="#00b894" stroke-width="14" stroke-linecap="round"/>
+        <line x1="200" y1="200" x2="360" y2="110" stroke="#00b894" stroke-width="14" stroke-linecap="round"/>
+        <line x1="200" y1="200" x2="360" y2="290" stroke="#00b894" stroke-width="14" stroke-linecap="round"/>
+        <line x1="200" y1="200" x2="200" y2="380" stroke="#00b894" stroke-width="14" stroke-linecap="round"/>
+        <line x1="200" y1="200" x2="40"  y2="290" stroke="#00b894" stroke-width="14" stroke-linecap="round"/>
+        <line x1="200" y1="200" x2="40"  y2="110" stroke="#00b894" stroke-width="14" stroke-linecap="round"/>
+        <polygon points="200,160 235,180 235,220 200,240 165,220 165,180"
+                 fill="#00b894" stroke="#00b894" stroke-width="14" stroke-linejoin="round"/>
+    </svg>
+</div>
+
+<div class="home-switchers">
+    <div class="switcher-col">
+        <div class="switcher-label" data-ru="Язык" data-en="Language">Язык</div>
+        <div class="switcher-row">
+            <button type="button" class="flag-btn" data-lang="ru" title="Русский">
+                <svg viewBox="0 0 9 6" width="28" height="19" preserveAspectRatio="none">
+                    <rect width="9" height="2" fill="#fff"/>
+                    <rect y="2" width="9" height="2" fill="#0039A6"/>
+                    <rect y="4" width="9" height="2" fill="#D52B1E"/>
+                </svg>
+            </button>
+            <button type="button" class="flag-btn" data-lang="en" title="English">
+                <svg viewBox="0 0 7410 3900" width="28" height="19" preserveAspectRatio="none">
+                    <rect width="7410" height="3900" fill="#fff"/>
+                    <g fill="#B22234">
+                        <rect width="7410" height="300" y="0"/>
+                        <rect width="7410" height="300" y="600"/>
+                        <rect width="7410" height="300" y="1200"/>
+                        <rect width="7410" height="300" y="1800"/>
+                        <rect width="7410" height="300" y="2400"/>
+                        <rect width="7410" height="300" y="3000"/>
+                        <rect width="7410" height="300" y="3600"/>
+                    </g>
+                    <rect width="2964" height="2100" fill="#3C3B6E"/>
+                    <g fill="#fff">
+                        <circle cx="300" cy="240" r="60"/><circle cx="600" cy="240" r="60"/><circle cx="900" cy="240" r="60"/>
+                        <circle cx="1200" cy="240" r="60"/><circle cx="1500" cy="240" r="60"/><circle cx="1800" cy="240" r="60"/>
+                        <circle cx="2100" cy="240" r="60"/><circle cx="2400" cy="240" r="60"/><circle cx="2700" cy="240" r="60"/>
+                        <circle cx="450" cy="480" r="60"/><circle cx="750" cy="480" r="60"/><circle cx="1050" cy="480" r="60"/>
+                        <circle cx="1350" cy="480" r="60"/><circle cx="1650" cy="480" r="60"/><circle cx="1950" cy="480" r="60"/>
+                        <circle cx="2250" cy="480" r="60"/><circle cx="2550" cy="480" r="60"/>
+                        <circle cx="300" cy="720" r="60"/><circle cx="600" cy="720" r="60"/><circle cx="900" cy="720" r="60"/>
+                        <circle cx="1200" cy="720" r="60"/><circle cx="1500" cy="720" r="60"/><circle cx="1800" cy="720" r="60"/>
+                        <circle cx="2100" cy="720" r="60"/><circle cx="2400" cy="720" r="60"/><circle cx="2700" cy="720" r="60"/>
+                        <circle cx="450" cy="960" r="60"/><circle cx="750" cy="960" r="60"/><circle cx="1050" cy="960" r="60"/>
+                        <circle cx="1350" cy="960" r="60"/><circle cx="1650" cy="960" r="60"/><circle cx="1950" cy="960" r="60"/>
+                        <circle cx="2250" cy="960" r="60"/><circle cx="2550" cy="960" r="60"/>
+                    </g>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="switcher-col">
+        <div class="switcher-label" data-ru="Тема" data-en="Theme">Тема</div>
+        <div class="switcher-row">
+            <button type="button" class="theme-btn" data-theme="light" title="Светлая">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                </svg>
+            </button>
+            <button type="button" class="theme-btn" data-theme="dark" title="Темная">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<header class="topbar">
+    <div class="topbar-logo"
+         data-ru="Ломбард «Соединения»"
+         data-en="Lombard &quot;Connections&quot;">
+        Ломбард «Соединения»
+    </div>
+    <div class="topbar-sub"
+         data-ru="Финансовая система займов"
+         data-en="Financial Loan System">
+        Финансовая система займов
+    </div>
+</header>
+
+<main class="main-content">
+    <h2 data-ru="Добро пожаловать" data-en="Welcome">Добро пожаловать</h2>
+    <p class="subtitle" data-ru="Выберите раздел, чтобы начать работу" data-en="Choose a section to start">Выберите раздел, чтобы начать работу</p>
+
+    <div sec:authorize="hasRole('CLIENT')" class="client-dashboard">
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="label" data-ru="Баланс счета" data-en="Account Balance">Баланс счета</div>
+                <div class="value accent">
+                    <span th:text="${clientBalance != null} ? ${#numbers.formatDecimal(clientBalance, 1, 0)} : '0'">0</span> ₽
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <div class="label" data-ru="Активных займов" data-en="Active Loans">Активных займов</div>
+                <div class="value" th:text="${activeLoansCount != null} ? ${activeLoansCount} : 0">0</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="label" data-ru="К возврату" data-en="Total to Return">К возврату</div>
+                <div class="value" th:text="${totalDebt != null} ? ${#numbers.formatDecimal(totalDebt, 1, 0)} + ' ₽' : '0 ₽'">0 ₽</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tiles">
+
+        <div sec:authorize="hasRole('ADMIN')"
+             style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+            <a href="/admin/notifications" class="tile" data-ru="Уведомления" data-en="Notifications">Уведомления</a>
+
+            <a href="/loans" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+                <span data-ru="Все займы" data-en="All Loans">Все займы</span>
+                <span th:if="${pendingLoansCount != null and pendingLoansCount > 0}" class="badge-home" th:text="${pendingLoansCount > 99 ? '99+' : pendingLoansCount}" style="position:absolute; right:20px;"></span>
+            </a>
+
+            <a href="/admin/intake" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+                <span data-ru="Прием вещей" data-en="Intake">Прием вещей</span>
+                <span th:if="${pendingIntakeCount != null and pendingIntakeCount > 0}" class="badge-home" th:text="${pendingIntakeCount > 99 ? '99+' : pendingIntakeCount}" style="position:absolute; right:20px;"></span>
+            </a>
+
+            <a href="/collaterals" class="tile" data-ru="Залоги" data-en="Collaterals">Залоги</a>
+            <a href="/client/search" class="tile" data-ru="Клиенты" data-en="Clients">Клиенты</a>
+            <a href="/shop/manage" class="tile" data-ru="Магазин" data-en="Shop">Магазин</a>
+
+            <a href="/admin/orders" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+                <span data-ru="Заказы" data-en="Orders">Заказы</span>
+                <span th:if="${pendingOrdersCount != null and pendingOrdersCount > 0}" class="badge-home" th:text="${pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}" style="position:absolute; right:20px;"></span>
+            </a>
+
+            <a href="/admin/warehouse" class="tile" data-ru="Склад" data-en="Warehouse">Склад</a>
+
+            <a href="/admin/users" class="tile" data-ru="Пользователи" data-en="Users">Пользователи</a>
+            <a href="/admin/stats" class="tile" data-ru="Статистика" data-en="Statistics">Статистика</a>
+        </div>
+
+        <div sec:authorize="hasRole('MANAGER')"
+             style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+            <a href="/admin/notifications" class="tile" data-ru="Уведомления" data-en="Notifications">Уведомления</a>
+
+            <a href="/loans" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+                <span data-ru="Все займы" data-en="All Loans">Все займы</span>
+                <span th:if="${pendingLoansCount != null and pendingLoansCount > 0}" class="badge-home" th:text="${pendingLoansCount > 99 ? '99+' : pendingLoansCount}" style="position:absolute; right:20px;"></span>
+            </a>
+
+            <a href="/admin/intake" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+                <span data-ru="Прием вещей" data-en="Intake">Прием вещей</span>
+                <span th:if="${pendingIntakeCount != null and pendingIntakeCount > 0}" class="badge-home" th:text="${pendingIntakeCount > 99 ? '99+' : pendingIntakeCount}" style="position:absolute; right:20px;"></span>
+            </a>
+
+            <a href="/collaterals" class="tile" data-ru="Залоги" data-en="Collaterals">Залоги</a>
+            <a href="/client/search" class="tile" data-ru="Клиенты" data-en="Clients">Клиенты</a>
+            <a href="/shop/manage" class="tile" data-ru="Магазин" data-en="Shop">Магазин</a>
+
+            <a href="/admin/orders" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+                <span data-ru="Заказы" data-en="Orders">Заказы</span>
+                <span th:if="${pendingOrdersCount != null and pendingOrdersCount > 0}" class="badge-home" th:text="${pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}" style="position:absolute; right:20px;"></span>
+            </a>
+
+            <a href="/admin/warehouse" class="tile" data-ru="Склад" data-en="Warehouse">Склад</a>
+        </div>
+
+        <div sec:authorize="hasRole('CLIENT')"
+             style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+            <a href="/client/loans/new" class="tile" data-ru="Создать заявку" data-en="Create Request">Создать заявку</a>
+
+            <a href="/client/loans" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+                <span data-ru="Мои займы" data-en="My Loans">Мои займы</span>
+                <span th:if="${activeLoansCount != null and activeLoansCount > 0}" class="badge-home" th:text="${activeLoansCount > 99 ? '99+' : activeLoansCount}" style="position:absolute; right:20px;"></span>
+            </a>
+
+            <a href="/shop" class="tile" data-ru="Магазин" data-en="Shop">Магазин</a>
+
+            <a href="/client/cart" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+                <span data-ru="Корзина" data-en="Cart">Корзина</span>
+                <span th:if="${cartCount != null and cartCount > 0}" class="badge-home" th:text="${cartCount > 99 ? '99+' : cartCount}" style="position:absolute; right:20px;"></span>
+            </a>
+
+            <a href="/client/orders" class="tile" data-ru="Мои заказы" data-en="My Orders">Мои заказы</a>
+            <a href="/client/account" class="tile" data-ru="Мой счет" data-en="My Account">Мой счет</a>
+
+            <a href="/client/notifications" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+                <span data-ru="Уведомления" data-en="Notifications">Уведомления</span>
+                <span th:if="${unreadNotifications != null and unreadNotifications > 0}" class="badge-home red" th:text="${unreadNotifications > 99 ? '99+' : unreadNotifications}" style="position:absolute; right:20px;"></span>
+            </a>
+
+            <a href="/client/profile" class="tile" data-ru="Мой профиль" data-en="My Profile">Мой профиль</a>
+            <a href="/support" class="tile" data-ru="Поддержка" data-en="Support">Поддержка</a>
+        </div>
+
+        <div class="divider"></div>
+
+        <a href="/about" class="tile tile-green" data-ru="Об авторе" data-en="About">Об авторе</a>
+
+        <form th:action="@{/logout}" method="post" style="width: 100%;">
+            <button type="submit" class="tile tile-red" data-ru="Выход" data-en="Logout">Выход</button>
+        </form>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    (function() {
+        const savedTheme = localStorage.getItem('app_theme') || 'light';
+        const savedLang  = localStorage.getItem('app_lang')  || 'ru';
+        if (savedTheme === 'dark') document.body.classList.add('theme-dark');
+        document.documentElement.setAttribute('lang', savedLang);
+
+        function applyLanguage(lang) {
+            const toEn = (lang === 'en');
+            document.querySelectorAll('[data-ru][data-en]').forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = toEn ? el.dataset.en : el.dataset.ru;
+                    return;
+                }
+                let textNode = null;
+                for (let i = 0; i < el.childNodes.length; i++) {
+                    const node = el.childNodes[i];
+                    if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                        textNode = node; break;
+                    }
+                }
+                const value = toEn ? el.dataset.en : el.dataset.ru;
+                if (textNode) {
+                    const leading = textNode.textContent.match(/^\s*/)[0];
+                    const trailing = textNode.textContent.match(/\s*$/)[0];
+                    textNode.textContent = leading + value + trailing;
+                } else if (el.children.length === 0) {
+                    el.textContent = value;
+                }
+            });
+            const titleEl = document.querySelector('title');
+            if (titleEl && titleEl.dataset && titleEl.dataset.ru && titleEl.dataset.en) {
+                titleEl.textContent = toEn ? titleEl.dataset.en : titleEl.dataset.ru;
+            }
+        }
+        window.applyLanguage = applyLanguage;
+        applyLanguage(savedLang);
+
+        function updateHomeSwitchers() {
+            const th = localStorage.getItem('app_theme') || 'light';
+            const lg = localStorage.getItem('app_lang')  || 'ru';
+            document.querySelectorAll('.home-switchers .theme-btn').forEach(b =>
+                b.classList.toggle('selected', b.dataset.theme === th));
+            document.querySelectorAll('.home-switchers .flag-btn').forEach(b =>
+                b.classList.toggle('selected', b.dataset.lang === lg));
+        }
+        updateHomeSwitchers();
+
+        document.querySelectorAll('.home-switchers .theme-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const theme = this.dataset.theme;
+                document.body.classList.toggle('theme-dark', theme === 'dark');
+                localStorage.setItem('app_theme', theme);
+                updateHomeSwitchers();
+            });
+        });
+
+        document.querySelectorAll('.home-switchers .flag-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const lang = this.dataset.lang;
+                localStorage.setItem('app_lang', lang);
+                document.documentElement.setAttribute('lang', lang);
+                applyLanguage(lang);
+                updateHomeSwitchers();
+            });
+        });
+    })();
+</script>
+
+</body>
+</html>

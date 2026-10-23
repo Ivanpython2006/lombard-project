@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Об авторе" data-en="About">Об авторе</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body class="about-page">
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar-center">
+    <div style="width: 100%; max-width: 750px;">
+        <h2 data-ru="Об авторе" data-en="About">Об авторе</h2>
+
+        <h3 data-ru="Личные данные" data-en="Personal Information">Личные данные</h3>
+        <div class="info-card">
+            <div class="info-row">
+                <div class="info-label" data-ru="ФИО:" data-en="Full Name:">ФИО:</div>
+                <div class="info-value">Сурков Иван Сергеевич</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label" data-ru="Группа:" data-en="Group:">Группа:</div>
+                <div class="info-value">ТРПО24-3</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label" data-ru="Учебное заведение:" data-en="University:">Учебное заведение:</div>
+                <div class="info-value"
+                     data-ru="Финансовый университет при Правительстве РФ"
+                     data-en="Financial University under the Government of the Russian Federation">
+                    Финансовый университет при Правительстве РФ
+                </div>
+            </div>
+        </div>
+
+        <h3 data-ru="Контактные данные" data-en="Contact Information">Контактные данные</h3>
+        <div class="info-card">
+            <div class="info-row">
+                <div class="info-label" data-ru="Email:" data-en="Email:">Email:</div>
+                <div class="info-value">245205@edu.fa.ru</div>
+            </div>
+        </div>
+
+        <h3 data-ru="Даты работы над проектом" data-en="Project Timeline">Даты работы над проектом</h3>
+        <div class="info-card">
+            <div class="info-row">
+                <div class="info-label" data-ru="Дата начала:" data-en="Start date:">Дата начала:</div>
+                <div class="info-value">11.09.2026</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label" data-ru="Дата завершения:" data-en="Completion date:">Дата завершения:</div>
+                <div class="info-value">31.10.2026</div>
+            </div>
+        </div>
+
+        <h3 data-ru="Опыт работы с технологиями" data-en="Experience with Technologies">Опыт работы с технологиями</h3>
+        <div class="tech-grid">
+            <div class="tech-card">
+                <div class="tech-name" data-ru="Java 17" data-en="Java 17">Java 17</div>
+                <div class="tech-desc"
+                     data-ru="изучен в рамках дисциплины «Современные технологии программирования»"
+                     data-en="learned in the course &quot;Modern Programming Technologies&quot;">
+                    изучен в рамках дисциплины «Современные технологии программирования»
+                </div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-name" data-ru="Spring Boot" data-en="Spring Boot">Spring Boot</div>
+                <div class="tech-desc"
+                     data-ru="освоен при разработке курсовой работы"
+                     data-en="mastered while developing the course project">
+                    освоен при разработке курсовой работы
+                </div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-name" data-ru="Spring Security" data-en="Spring Security">Spring Security</div>
+                <div class="tech-desc"
+                     data-ru="освоен при разработке курсовой работы"
+                     data-en="mastered while developing the course project">
+                    освоен при разработке курсовой работы
+                </div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-name" data-ru="Spring Data JPA / Hibernate" data-en="Spring Data JPA / Hibernate">Spring Data JPA / Hibernate</div>
+                <div class="tech-desc"
+                     data-ru="освоены при разработке курсовой работы"
+                     data-en="mastered while developing the course project">
+                    освоены при разработке курсовой работы
+                </div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-name" data-ru="PostgreSQL" data-en="PostgreSQL">PostgreSQL</div>
+                <div class="tech-desc"
+                     data-ru="освоена при разработке курсовой работы"
+                     data-en="mastered while developing the course project">
+                    освоена при разработке курсовой работы
+                </div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-name" data-ru="Thymeleaf" data-en="Thymeleaf">Thymeleaf</div>
+                <div class="tech-desc"
+                     data-ru="освоен при разработке курсовой работы"
+                     data-en="mastered while developing the course project">
+                    освоен при разработке курсовой работы
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+</body>
+</html>

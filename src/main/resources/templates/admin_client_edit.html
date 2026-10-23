@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Редактировать клиента" data-en="Edit Client">Редактировать клиента</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar-center">
+    <div class="form-container">
+        <h2 data-ru="Редактировать клиента" data-en="Edit Client">Редактировать клиента</h2>
+
+        <div class="alert alert-error" th:if="${error}" th:text="${error}"
+             style="padding:12px; border:1px solid #e74c3c; background:#fdeaea; margin-bottom:16px;"></div>
+
+        <form th:action="@{/admin/clients/{id}/edit(id=${client.id})}" method="post">
+            <div class="form-group">
+                <label data-ru="Номер клиента" data-en="Client Number">Номер клиента</label>
+                <input type="text" th:value="${client.clientNumber}" readonly
+                       style="color:#00b894; font-weight:700;">
+            </div>
+
+            <div class="form-group">
+                <label for="lastName" data-ru="Фамилия" data-en="Last Name">Фамилия</label>
+                <input type="text" id="lastName" name="lastName" th:value="${client.lastName}" required
+                       pattern="[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\-]+"
+                       title="Только буквы, минимум 2 символа"
+                       minlength="2" maxlength="40">
+            </div>
+
+            <div class="form-group">
+                <label for="firstName" data-ru="Имя" data-en="First Name">Имя</label>
+                <input type="text" id="firstName" name="firstName" th:value="${client.firstName}" required
+                       pattern="[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\-]+"
+                       title="Только буквы, минимум 2 символа"
+                       minlength="2" maxlength="40">
+            </div>
+
+            <div class="form-group">
+                <label for="middleName" data-ru="Отчество" data-en="Middle Name">Отчество</label>
+                <input type="text" id="middleName" name="middleName" th:value="${client.middleName}"
+                       pattern="[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\-]+"
+                       title="Только буквы, минимум 2 символа"
+                       minlength="2" maxlength="40">
+            </div>
+
+            <div class="form-group">
+                <label for="email" data-ru="Email" data-en="Email">Email</label>
+                <input type="email" id="email" name="email" th:value="${client.email}" maxlength="80">
+            </div>
+
+            <div class="form-group">
+                <label for="phone" data-ru="Телефон" data-en="Phone">Телефон</label>
+                <input type="text" id="phone" name="phone" th:value="${client.phone}"
+                       pattern="\+7\d{10}" placeholder="+79875102333">
+                <div class="hint" data-ru="Формат: +7XXXXXXXXXX (11 цифр)"
+                     data-en="Format: +7XXXXXXXXXX (11 digits)">Формат: +7XXXXXXXXXX (11 цифр)</div>
+            </div>
+
+            <button type="submit" class="btn-green"
+                    data-ru="Сохранить изменения" data-en="Save Changes">Сохранить изменения</button>
+        </form>
+
+        <a href="/client/search" class="btn-back" style="display:block; width:fit-content; margin:15px auto 0;"
+           data-ru="← Назад к клиентам" data-en="← Back to Clients">← Назад к клиентам</a>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+</body>
+</html>

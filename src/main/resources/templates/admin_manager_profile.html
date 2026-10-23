@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Профиль менеджера" data-en="Manager Profile">Профиль менеджера</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <h2 data-ru="Профиль менеджера" data-en="Manager Profile">Профиль менеджера</h2>
+    <p class="subtitle">
+        <span data-ru="Логин:" data-en="Login:">Логин:</span>
+        <b th:text="${manager.username}"></b>
+    </p>
+
+    <a href="/admin/users" class="btn-back"
+       data-ru="← К пользователям" data-en="← Back to Users">← К пользователям</a>
+
+    <div class="card-info">
+        <h3 data-ru="Информация" data-en="Information">Информация</h3>
+        <div class="info-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="Номер" data-en="Number">Номер</span>
+                <span class="info-value-block" th:text="${manager.userNumber}" style="color:#00b894; font-weight:700;"></span>
+            </div>
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="ID" data-en="ID">ID</span>
+                <span class="info-value-block" th:text="${manager.id}"></span>
+            </div>
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="Логин" data-en="Login">Логин</span>
+                <span class="info-value-block" th:text="${manager.username}"></span>
+            </div>
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="Роль" data-en="Role">Роль</span>
+                <span class="info-value-block" th:text="${manager.role}"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-info">
+        <h3 data-ru="Статистика за текущий месяц" data-en="Statistics for the Current Month">Статистика за текущий месяц</h3>
+        <div class="stats-mini-grid">
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsMonth.total}">0</div>
+                <div class="stat-box-label" data-ru="Всего действий" data-en="Total Actions">Всего действий</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsMonth.approved}">0</div>
+                <div class="stat-box-label" data-ru="Одобрено" data-en="Approved">Одобрено</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsMonth.rejected}">0</div>
+                <div class="stat-box-label" data-ru="Отклонено" data-en="Rejected">Отклонено</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsMonth.issued}">0</div>
+                <div class="stat-box-label" data-ru="Выдано" data-en="Issued">Выдано</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsMonth.closed}">0</div>
+                <div class="stat-box-label" data-ru="Закрыто" data-en="Closed">Закрыто</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsMonth.extended}">0</div>
+                <div class="stat-box-label" data-ru="Продлено" data-en="Extended">Продлено</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-info">
+        <h3 data-ru="Статистика за все время" data-en="Statistics for All Time">Статистика за все время</h3>
+        <div class="stats-mini-grid">
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsAllTime.total}">0</div>
+                <div class="stat-box-label" data-ru="Всего действий" data-en="Total Actions">Всего действий</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsAllTime.approved}">0</div>
+                <div class="stat-box-label" data-ru="Одобрено" data-en="Approved">Одобрено</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsAllTime.rejected}">0</div>
+                <div class="stat-box-label" data-ru="Отклонено" data-en="Rejected">Отклонено</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsAllTime.issued}">0</div>
+                <div class="stat-box-label" data-ru="Выдано" data-en="Issued">Выдано</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsAllTime.closed}">0</div>
+                <div class="stat-box-label" data-ru="Закрыто" data-en="Closed">Закрыто</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-value" th:text="${statsAllTime.extended}">0</div>
+                <div class="stat-box-label" data-ru="Продлено" data-en="Extended">Продлено</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-info">
+        <h3 data-ru="История действий" data-en="Action History">История действий</h3>
+
+        <div class="table-wrap" th:if="${not #lists.isEmpty(history)}">
+            <table>
+                <thead>
+                <tr>
+                    <th data-ru="Дата и время" data-en="Date and Time">Дата и время</th>
+                    <th data-ru="Заем" data-en="Loan">Заем</th>
+                    <th data-ru="Действие" data-en="Action">Действие</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="h : ${history}">
+                    <td th:text="${#temporals.format(h.changedAt, 'dd.MM.yyyy HH:mm')}"></td>
+                    <td>
+                        <a th:if="${h.loan != null}"
+                           th:href="@{/loans/{id}(id=${h.loan.id})}"
+                           th:text="${h.loan.loanNumber}"
+                           style="color:#00b894; font-weight:700; text-decoration:none;"></a>
+                        <span th:if="${h.loan == null}">-</span>
+                    </td>
+                    <td style="max-width:400px; word-break:break-word;" th:text="${h.action}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-message" th:if="${#lists.isEmpty(history)}"
+             data-ru="Действий пока нет." data-en="No actions yet.">
+            Действий пока нет.
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+</body>
+</html>

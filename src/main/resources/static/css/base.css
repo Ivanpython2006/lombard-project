@@ -1,0 +1,58 @@
+/* BASE - сброс шрифты переменные body */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+a, button, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    outline: none !important;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+a:focus, a:active, a:focus-visible,
+button:focus, button:active, button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+html {
+    height: 100%;
+    scroll-behavior: smooth;
+    background-color: #ffffff;
+}
+
+body { /*body - центированный блок до 1600px (при zoom-out вся верстка сжимается в этот блок)*/
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+body.theme-dark { background-color: #121212 !important; }
+
+@media (max-width: 1600px) { /* На узких экранах ограничение не мешает */
+    body { max-width: 100%; }
+}
+
+:root {
+    --color-accent: #00b894;
+    --color-danger: #e74c3c;
+    --color-success: #10b981;
+    --color-info: #3b82f6;
+    --color-warning: #f59e0b;
+}

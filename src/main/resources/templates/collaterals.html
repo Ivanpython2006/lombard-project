@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Залоги</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .item-number-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: #e6faf5;
+            border: 2px solid #00b894;
+            color: #00a383;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            font-family: 'Inter', monospace;
+        }
+        body.theme-dark .item-number-badge {
+            background: #0a2e27;
+            border-color: #00d4a8;
+            color: #00d4a8;
+        }
+
+        .loan-link-soft {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            color: #666;
+            border: 1px solid #ccc;
+            background: #f8f9fa;
+            transition: all 0.15s ease;
+        }
+        .loan-link-soft:hover { color: #00b894; border-color: #00b894; background: #fff; }
+        body.theme-dark .loan-link-soft { color: #999; border-color: #2a2a2a; background: #1a1a1a; }
+        body.theme-dark .loan-link-soft:hover { color: #00d4a8; border-color: #00d4a8; background: #121212; }
+
+        .client-cell {
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; flex-wrap: nowrap;
+        }
+        .client-cell .client-name { font-size: 13px; color: #000; white-space: nowrap; }
+        .client-cell .client-number { font-size: 11px; color: #00b894; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
+        body.theme-dark .client-cell .client-name { color: #e0e0e0; }
+        body.theme-dark .client-cell .client-number { color: #00d4a8; }
+
+        /* Красивая заглушка "Нет фото" в модалке */
+        .modal-photo-empty {
+            width: 100%;
+            height: 340px;
+            background: #f8f9fa;
+            border: 2px dashed #d0d0d0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #999;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .modal-photo-empty svg {
+            color: #bbb;
+            stroke-width: 1.5;
+        }
+        body.theme-dark .modal-photo-empty {
+            background: #1e1e1e;
+            border-color: #2a2a2a;
+            color: #666;
+        }
+        body.theme-dark .modal-photo-empty svg { color: #444; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
+        <h2 style="margin-bottom:0;" data-ru="Все залоги" data-en="All Collaterals">Все залоги</h2>
+        <a href="/collaterals/export" class="btn" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</a>
+    </div>
+
+    <form class="filter-bar" th:action="@{/collaterals}" method="get" id="filterForm">
+        <input type="text" name="query" th:value="${query}"
+               data-ru="Поиск по номеру, вещи или клиенту..."
+               data-en="Search by number, item or client..."
+               placeholder="Поиск по номеру, вещи или клиенту..."
+               oninput="autoSubmit()">
+        <span class="filter-divider"></span>
+        <select name="status" onchange="this.form.submit()">
+            <option value="" data-ru="Все статусы" data-en="All statuses">Все статусы</option>
+            <option value="В ожидании" th:selected="${status == 'В ожидании'}" data-ru="В ожидании" data-en="Pending">В ожидании</option>
+            <option value="Ожидает подтверждения" th:selected="${status == 'Ожидает подтверждения'}" data-ru="Ожидает подтверждения" data-en="Awaiting Confirmation">Ожидает подтверждения</option>
+            <option value="Одобрен" th:selected="${status == 'Одобрен'}" data-ru="Одобрен" data-en="Approved">Одобрен</option>
+            <option value="Отклонен" th:selected="${status == 'Отклонен'}" data-ru="Отклонен" data-en="Rejected">Отклонен</option>
+            <option value="Выдан" th:selected="${status == 'Выдан'}" data-ru="Выдан" data-en="Issued">Выдан</option>
+            <option value="Закрыт" th:selected="${status == 'Закрыт'}" data-ru="Закрыт" data-en="Closed">Закрыт</option>
+            <option value="На продаже" th:selected="${status == 'На продаже'}" data-ru="В магазине" data-en="In Shop">В магазине</option>
+            <option value="Отменена" th:selected="${status == 'Отменена'}" data-ru="Отменена" data-en="Cancelled">Отменена</option>
+            <option value="Просрочен" th:selected="${status == 'Просрочен'}" data-ru="Просрочен" data-en="Overdue">Просрочен</option>
+            <option value="На складе" th:selected="${status == 'На складе'}" data-ru="На складе" data-en="In Stock">На складе</option>
+            <option value="Куплен" th:selected="${status == 'Куплен'}" data-ru="Куплен" data-en="Purchased">Куплен</option>
+        </select>
+        <span class="filter-divider"></span>
+        <select name="sort" onchange="this.form.submit()">
+            <option value="id" th:selected="${sort == 'id'}" data-ru="По умолчанию" data-en="Default">По умолчанию</option>
+            <option value="number" th:selected="${sort == 'number'}" data-ru="По номеру" data-en="By number">По номеру</option>
+            <option value="name" th:selected="${sort == 'name'}" data-ru="По названию" data-en="By name">По названию</option>
+            <option value="price" th:selected="${sort == 'price'}" data-ru="По оценке" data-en="By valuation">По оценке</option>
+            <option value="client" th:selected="${sort == 'client'}" data-ru="По клиенту" data-en="By client">По клиенту</option>
+            <option value="status" th:selected="${sort == 'status'}" data-ru="По статусу" data-en="By status">По статусу</option>
+        </select>
+    </form>
+
+    <div class="table-wrap" th:if="${not #lists.isEmpty(collaterals)}">
+        <table>
+            <thead>
+            <tr>
+                <th data-ru="Номер вещи" data-en="Item Number">Номер вещи</th>
+                <th data-ru="Вещь" data-en="Item">Вещь</th>
+                <th data-ru="Оценка" data-en="Valuation">Оценка</th>
+                <th data-ru="Заем" data-en="Loan">Заем</th>
+                <th data-ru="Клиент" data-en="Client">Клиент</th>
+                <th data-ru="Статус займа" data-en="Loan Status">Статус займа</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${collaterals}">
+                <td><span class="item-number-badge" th:text="${c.itemNumber}">M16</span></td>
+                <td>
+                    <button type="button" class="item-link"
+                            th:attr="data-id=${c.id},
+                                     data-number=${c.itemNumber},
+                                     data-name=${c.name},
+                                     data-description=${c.description},
+                                     data-price=${c.estimatedPrice},
+                                     data-photos=${c.photoUrls != null ? #strings.listJoin(c.photoUrls, '||') : ''},
+                                     data-loan-id=${c.loan != null ? c.loan.id : ''},
+                                     data-loan-number=${c.loan != null ? c.loan.loanNumber : ''},
+                                     data-loan-status=${c.loan != null ? c.loan.status : ''},
+                                     data-client=${c.loan != null and c.loan.client != null ? c.loan.client.fullName : ''},
+                                     data-client-number=${c.loan != null and c.loan.client != null ? c.loan.client.clientNumber : ''},
+                                     data-client-email=${c.loan != null and c.loan.client != null ? c.loan.client.email : ''},
+                                     data-client-phone=${c.loan != null and c.loan.client != null ? c.loan.client.phone : ''}"
+                            onclick="openItemModal(this)" th:text="${c.name} ?: '-'"></button>
+                </td>
+                <td>
+                    <span th:if="${c.estimatedPrice != null}" th:text="${c.estimatedPrice} + ' ₽'"></span>
+                    <span th:if="${c.estimatedPrice == null}" data-ru="Не оценен" data-en="Not valued">Не оценен</span>
+                </td>
+                <td>
+                    <a th:if="${c.loan != null}" th:href="@{/loans/{id}(id=${c.loan.id})}"
+                       class="loan-link-soft" th:text="${c.loan.loanNumber}"></a>
+                    <span th:if="${c.loan == null}">-</span>
+                </td>
+                <td>
+                    <div class="client-cell" th:if="${c.loan != null and c.loan.client != null}">
+                        <span class="client-name" th:text="${c.loan.client.fullName}"></span>
+                        <span class="client-number" th:text="'(' + ${c.loan.client.clientNumber} + ')'"></span>
+                    </div>
+                    <span th:if="${c.loan == null or c.loan.client == null}">-</span>
+                </td>
+                <td>
+                    <span class="status-badge status-waiting" th:if="${c.loan != null and c.loan.status == 'В ожидании'}" data-ru="В ожидании" data-en="Pending">В ожидании</span>
+                    <span class="status-badge status-waiting" th:if="${c.loan != null and c.loan.status == 'Ожидает подтверждения'}" data-ru="Ожидает подтверждения" data-en="Awaiting Confirmation">Ожидает подтверждения</span>
+                    <span class="status-badge status-approved" th:if="${c.loan != null and c.loan.status == 'Одобрен'}" data-ru="Одобрен" data-en="Approved">Одобрен</span>
+                    <span class="status-badge status-rejected" th:if="${c.loan != null and c.loan.status == 'Отклонен'}" data-ru="Отклонен" data-en="Rejected">Отклонен</span>
+                    <span class="status-badge status-issued" th:if="${c.loan != null and c.loan.status == 'Выдан'}" data-ru="Выдан" data-en="Issued">Выдан</span>
+                    <span class="status-badge status-closed" th:if="${c.loan != null and c.loan.status == 'Закрыт'}" data-ru="Закрыт" data-en="Closed">Закрыт</span>
+                    <span class="status-badge status-sold" th:if="${c.loan != null and c.loan.status == 'На продаже'}" data-ru="В магазине" data-en="In Shop">В магазине</span>
+                    <span class="status-badge status-cancelled-loan" th:if="${c.loan != null and c.loan.status == 'Отменена'}" data-ru="Отменена" data-en="Cancelled">Отменена</span>
+                    <span class="status-badge status-overdue" th:if="${c.loan != null and c.loan.status == 'Просрочен'}" data-ru="Просрочен" data-en="Overdue">Просрочен</span>
+                    <span class="status-badge status-instock" th:if="${c.loan != null and c.loan.status == 'На складе'}" data-ru="На складе" data-en="In Stock">На складе</span>
+                    <span class="status-badge status-purchased" th:if="${c.loan != null and c.loan.status == 'Куплен'}" data-ru="Куплен" data-en="Purchased">Куплен</span>
+                    <span th:if="${c.loan == null}">-</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(collaterals)}" data-ru="Залогов не найдено." data-en="No collaterals found.">Залогов не найдено.</div>
+
+    <div class="pagination-wrap" th:if="${totalPages != null and totalPages > 1}">
+        <div class="pagination-info">
+            <span data-ru="Всего залогов" data-en="Total collaterals">Всего залогов</span>:
+            <span th:text="${totalItems}"></span>,
+            <span data-ru="страница" data-en="page">страница</span>
+            <span th:text="${currentPage}"></span>
+            <span data-ru="из" data-en="of">из</span>
+            <span th:text="${totalPages}"></span>
+        </div>
+        <a th:if="${currentPage > 1}" th:href="@{/collaterals(page=${currentPage - 1}, query=${query}, status=${status}, sort=${sort})}" class="page-btn">
+            ← <span data-ru="Назад" data-en="Back">Назад</span>
+        </a>
+        <span th:if="${currentPage <= 1}" class="page-btn disabled">
+            ← <span data-ru="Назад" data-en="Back">Назад</span>
+        </span>
+        <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/collaterals(page=${i}, query=${query}, status=${status}, sort=${sort})}"
+           class="page-btn" th:classappend="${i == currentPage} ? 'active' : ''" th:text="${i}"></a>
+        <a th:if="${currentPage < totalPages}" th:href="@{/collaterals(page=${currentPage + 1}, query=${query}, status=${status}, sort=${sort})}" class="page-btn">
+            <span data-ru="Вперед" data-en="Next">Вперед</span> →
+        </a>
+        <span th:if="${currentPage >= totalPages}" class="page-btn disabled">
+            <span data-ru="Вперед" data-en="Next">Вперед</span> →
+        </span>
+    </div>
+</div>
+
+<!-- модалка залога -->
+<div class="modal-overlay" id="itemModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="modalName">-</div>
+                <div class="modal-subtitle" data-ru="Информация о залоге" data-en="Collateral Information">Информация о залоге</div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeItemModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="modalPhotoContainer" style="margin-bottom:20px;"></div>
+            <div class="modal-row"><div class="modal-label" data-ru="Номер вещи" data-en="Item Number">Номер вещи</div><div class="modal-value"><span id="modalNumber" class="item-number-badge">-</span></div></div>
+            <div class="modal-row"><div class="modal-label" data-ru="Описание" data-en="Description">Описание</div><div class="modal-value" id="modalDesc">-</div></div>
+            <div class="modal-row"><div class="modal-label" data-ru="Оценка" data-en="Valuation">Оценка</div><div class="modal-value" id="modalPrice">-</div></div>
+            <div class="modal-row"><div class="modal-label" data-ru="Заем" data-en="Loan">Заем</div><div class="modal-value" id="modalLoan">-</div></div>
+            <div class="modal-row"><div class="modal-label" data-ru="Статус займа" data-en="Loan Status">Статус займа</div><div class="modal-value" id="modalStatus">-</div></div>
+            <div class="modal-row"><div class="modal-label" data-ru="Клиент" data-en="Client">Клиент</div><div class="modal-value" id="modalClient">-</div></div>
+            <div class="modal-row"><div class="modal-label" data-ru="Email" data-en="Email">Email</div><div class="modal-value" id="modalEmail">-</div></div>
+            <div class="modal-row"><div class="modal-label" data-ru="Телефон" data-en="Phone">Телефон</div><div class="modal-value" id="modalPhone">-</div></div>
+
+            <div style="margin-top:24px; text-align:center;">
+                <a id="modalEditBtn" href="#" class="action-btn approve"
+                   data-ru="Редактировать" data-en="Edit"
+                   style="display:inline-block; padding:12px 28px; font-size:13px;">Редактировать</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    let autoSubmitTimer = null;
+    function autoSubmit() {
+        clearTimeout(autoSubmitTimer);
+        autoSubmitTimer = setTimeout(function() {
+            document.getElementById('filterForm').submit();
+        }, 500);
+    }
+
+    function setVal(id, value, emptyText) {
+        const el = document.getElementById(id);
+        if (value === null || value === undefined || value === '' || value === 'null') {
+            el.textContent = emptyText || '-';
+        } else {
+            el.textContent = value;
+        }
+    }
+
+    function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    let currentModalData = null;
+
+    function currentViewerInfo() {
+        if (!currentModalData) return null;
+        return {
+            name: currentModalData.name,
+            number: currentModalData.number,
+            price: currentModalData.price,
+            description: currentModalData.description,
+            client: currentModalData.client,
+            loanId: currentModalData.loanId,
+            loanNumber: currentModalData.loanNumber,
+            status: currentModalData.status,
+            editUrl: '/collaterals/' + currentModalData.id + '/edit'
+        };
+    }
+
+    function buildSliderHtml(photos) {
+        if (!photos || photos.length === 0) {
+            return '<div class="modal-photo-empty">'
+                 + '<svg viewBox="0 0 24 24" width="48" height="48" '
+                 +   'fill="none" stroke="currentColor" stroke-width="1.5" '
+                 +   'stroke-linecap="round" stroke-linejoin="round">'
+                 +   '<rect x="3" y="6" width="18" height="14" rx="2"/>'
+                 +   '<circle cx="12" cy="13" r="3.5"/>'
+                 +   '<path d="M8 6l1.5-2h5L16 6"/>'
+                 + '</svg>'
+                 + '<span data-ru="Нет фото" data-en="No photo">Нет фото</span>'
+                 + '</div>';
+        }
+
+        const infoJson = JSON.stringify(currentViewerInfo() || {});
+        const infoAttr = escapeHtml(infoJson);
+
+        let html = '<div class="photo-slider" data-count="' + photos.length + '" '
+                 + 'data-viewer-info="' + infoAttr + '">';
+        html += '<div class="photo-slider-inner" style="height:340px;">';
+
+        for (let i = 0; i < photos.length; i++) {
+            const cls = (i === 0) ? 'photo-slider-img active' : 'photo-slider-img';
+            html += '<img class="' + cls + '" src="' + escapeHtml(photos[i]) + '" '
+                  + 'alt="photo" loading="lazy" '
+                  + 'onerror="handleBrokenPhoto(this)"/>';
+        }
+
+        if (photos.length > 1) {
+            html += '<button type="button" class="photo-slider-btn photo-slider-prev" '
+                  + 'onclick="slidePhoto(this, -1); return false;" aria-label="Назад">‹</button>';
+            html += '<button type="button" class="photo-slider-btn photo-slider-next" '
+                  + 'onclick="slidePhoto(this, 1); return false;" aria-label="Вперед">›</button>';
+            html += '<div class="photo-slider-counter">'
+                  + '<span class="photo-slider-current">1</span>'
+                  + '<span> / </span>'
+                  + '<span>' + photos.length + '</span>'
+                  + '</div>';
+        }
+
+        html += '<div class="photo-slider-zoomhint" '
+              + 'data-ru="Нажмите, чтобы увеличить" '
+              + 'data-en="Click to enlarge">Нажмите, чтобы увеличить</div>';
+
+        html += '</div></div>';
+        return html;
+    }
+
+    function openItemModal(btn) {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        const number = btn.getAttribute('data-number');
+        const desc = btn.getAttribute('data-description');
+        const price = btn.getAttribute('data-price');
+        const photosRaw = btn.getAttribute('data-photos') || '';
+        const loanId = btn.getAttribute('data-loan-id');
+        const loanNumber = btn.getAttribute('data-loan-number');
+        const status = btn.getAttribute('data-loan-status');
+        const client = btn.getAttribute('data-client');
+        const clientNumber = btn.getAttribute('data-client-number');
+        const email = btn.getAttribute('data-client-email');
+        const phone = btn.getAttribute('data-client-phone');
+
+        const photos = photosRaw
+            ? photosRaw.split('||').filter(function(u) { return u && u.trim() !== ''; })
+            : [];
+
+        let clientText = '-';
+        if (client && client !== 'null' && client !== '') {
+            clientText = client;
+            if (clientNumber && clientNumber !== 'null' && clientNumber !== '') {
+                clientText = client + ' (' + clientNumber + ')';
+            }
+        }
+
+        currentModalData = {
+            id: id,
+            name: name,
+            number: number,
+            description: desc,
+            price: price,
+            client: clientText,
+            loanId: (loanId && loanId !== 'null') ? loanId : null,
+            loanNumber: loanNumber,
+            status: status
+        };
+
+        setVal('modalName', name, '-');
+        setVal('modalNumber', number, '-');
+        setVal('modalDesc', desc, 'Не указано');
+        setVal('modalPrice', price && price !== 'null' ? price + ' ₽' : '', 'Не оценен');
+        setVal('modalStatus', status, '-');
+        setVal('modalClient', clientText, '-');
+        setVal('modalEmail', email, '-');
+        setVal('modalPhone', phone, '-');
+
+        document.getElementById('modalPhotoContainer').innerHTML = buildSliderHtml(photos);
+
+        const loanEl = document.getElementById('modalLoan');
+        if (loanId && loanId !== 'null' && loanId !== '') {
+            const label = loanNumber && loanNumber !== 'null' ? loanNumber : ('#' + loanId);
+            loanEl.innerHTML = '<a href="/loans/' + loanId + '" style="color:#666; font-weight:600; text-decoration:none; border-bottom: 1px dashed #999;">' + escapeHtml(label) + '</a>';
+        } else {
+            loanEl.textContent = '-';
+        }
+
+        document.getElementById('modalEditBtn').href = '/collaterals/' + id + '/edit';
+        document.getElementById('itemModal').classList.add('active');
+    }
+
+    function closeItemModal() {
+        document.getElementById('itemModal').classList.remove('active');
+        document.getElementById('modalPhotoContainer').innerHTML = '';
+        currentModalData = null;
+    }
+
+    document.getElementById('itemModal').addEventListener('click', function(e) {
+        if (e.target === this) closeItemModal();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeItemModal();
+    });
+</script>
+
+</body>
+</html>

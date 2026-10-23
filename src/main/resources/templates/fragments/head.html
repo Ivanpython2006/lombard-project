@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"></head>
+<body>
+<th:block th:fragment="styles">
+    <style>
+        html.i18n-loading body { //чтобы при переключении не было мигания (рус англ)
+            visibility: hidden !important;
+        }
+    </style>
+    <script>
+        (function() {
+            try {
+                var lang = localStorage.getItem('app_lang') || 'ru';
+                document.documentElement.setAttribute('lang', lang);
+
+                if (localStorage.getItem('app_theme') === 'dark') {
+                    document.documentElement.style.backgroundColor = '#121212';
+                } else {
+                    document.documentElement.style.backgroundColor = '#ffffff';
+                }
+
+                if (lang !== 'en') return;
+
+                document.documentElement.classList.add('i18n-loading'); // Для en: прячу body пока не переведен
+
+                function translateAll() {
+                    var nodes = document.querySelectorAll('[data-ru][data-en]');
+                    for (var i = 0; i < nodes.length; i++) {
+                        var el = nodes[i];
+                        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                            el.placeholder = el.dataset.en;
+                            continue;
+                        }
+                        var textNode = null;
+                        for (var j = 0; j < el.childNodes.length; j++) {
+                            var node = el.childNodes[j];
+                            if (node.nodeType === 3 && node.textContent.trim()) {
+                                textNode = node; break;
+                            }
+                        }
+                        var value = el.dataset.en;
+                        if (textNode) {
+                            var leading = textNode.textContent.match(/^\s*/)[0];
+                            var trailing = textNode.textContent.match(/\s*$/)[0];
+                            textNode.textContent = leading + value + trailing;
+                        } else if (el.children.length === 0) {
+                            el.textContent = value;
+                        }
+                    }
+                    var titleEl = document.querySelector('title');
+                    if (titleEl && titleEl.dataset && titleEl.dataset.en) {
+                        titleEl.textContent = titleEl.dataset.en;
+                    }
+                    document.documentElement.classList.remove('i18n-loading');
+                }
+
+                //ожидание пока DOM станет interactive и сразу перевод
+                // если стили уже загружены (а они ниже по документу уже в кэше).
+                document.addEventListener('DOMContentLoaded', translateAll);
+            } catch (e) {}
+        })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/pages.css">
+    <link rel="stylesheet" href="/css/theme.css">
+    <th:block th:replace="~{fragments/photo-slider :: sliderStyles}"></th:block>
+</th:block>
+</body>
+</html>
