@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -17,8 +18,10 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // 404 - если не нашел страницу или статический ресурс
-    @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
+    // 404 - если не нашел страницу или статический ресурс,
+    // а также адрес вида /loans/abc, где вместо номера записи стоит текст
+    @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class,
+            MethodArgumentTypeMismatchException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleNotFound(Exception ex, Model model) {
         log.warn("404: {}", ex.getMessage());

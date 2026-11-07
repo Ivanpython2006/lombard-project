@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -76,6 +77,12 @@ class AdminControllerIntegrationTest extends IntegrationTestBase {
         mvc.perform(post("/admin/users/" + u.getId() + "/role").with(csrf())
                         .param("role", "MANAGER"))
                 .andExpect(status().is3xxRedirection());
+
+        // вернуть роль «Клиент» нельзя: у bob нет профиля клиента
+        mvc.perform(post("/admin/users/" + u.getId() + "/role").with(csrf())
+                        .param("role", "CLIENT"))
+                .andExpect(flash().attributeExists("error"));
+        assertEquals("MANAGER", userRepository.findById(u.getId()).orElseThrow().getRole());
     }
 
     @Test
