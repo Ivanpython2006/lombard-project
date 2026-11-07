@@ -230,6 +230,14 @@ public class AdminController {
             return "redirect:/admin/users";
         }
 
+        // клиентские страницы работают через профиль клиента (счет, займы),
+        // поэтому сотрудника без такого профиля сделать клиентом нельзя
+        if ("CLIENT".equals(role.toUpperCase()) && clientService.findByUserId(id) == null) {
+            ra.addFlashAttribute("error",
+                    "У пользователя нет профиля клиента, роль «Клиент» назначить нельзя");
+            return "redirect:/admin/users";
+        }
+
         userService.changeRole(id, role.toUpperCase());
         ra.addFlashAttribute("success", "Роль изменена на «" + role.toUpperCase() + "»");
         return "redirect:/admin/users";

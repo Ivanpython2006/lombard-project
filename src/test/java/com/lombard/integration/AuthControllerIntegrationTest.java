@@ -39,7 +39,8 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
                         .param("password", "password123")
                         .param("lastName", "Иванов")
                         .param("firstName", "Иван")
-                        .param("middleName", "Иванович")
+                        // отчество не заполнено - браузер присылает пустую строку
+                        .param("middleName", "")
                         .param("phone", "+79991112233")
                         .param("email", "ivan@test.com"))
                 .andExpect(status().is3xxRedirection())

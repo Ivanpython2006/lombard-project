@@ -29,6 +29,15 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
         mvc.perform(get("/loans/" + loan.getId() + "/approve")).andExpect(status().isOk());
     }
 
+    // текст вместо номера займа в адресе - это страница 404, а не ошибка сервера 500
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void loanDetails_textInsteadOfId_returns404() throws Exception {
+        mvc.perform(get("/loans/abc"))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("error/404"));
+    }
+
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void approve_validForm_redirects() throws Exception {

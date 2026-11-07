@@ -93,27 +93,27 @@
             <div class="form-group">
                 <label for="status" data-ru="Статус" data-en="Status">Статус</label>
                 <select id="status" name="status" required>
-                    <option value="В ожидании" th:selected="${loan.status == 'В ожидании'}"
+                    <option value="В ожидании" th:selected="${loan.status == 'В ожидании'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('В ожидании')}"
                             data-ru="В ожидании" data-en="Pending">В ожидании</option>
-                    <option value="Ожидает подтверждения" th:selected="${loan.status == 'Ожидает подтверждения'}"
+                    <option value="Ожидает подтверждения" th:selected="${loan.status == 'Ожидает подтверждения'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('Ожидает подтверждения')}"
                             data-ru="Ожидает подтверждения" data-en="Awaiting Confirmation">Ожидает подтверждения</option>
-                    <option value="Одобрен" th:selected="${loan.status == 'Одобрен'}"
+                    <option value="Одобрен" th:selected="${loan.status == 'Одобрен'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('Одобрен')}"
                             data-ru="Одобрен" data-en="Approved">Одобрен</option>
-                    <option value="Отклонен" th:selected="${loan.status == 'Отклонен'}"
+                    <option value="Отклонен" th:selected="${loan.status == 'Отклонен'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('Отклонен')}"
                             data-ru="Отклонен" data-en="Rejected">Отклонен</option>
-                    <option value="Выдан" th:selected="${loan.status == 'Выдан'}"
+                    <option value="Выдан" th:selected="${loan.status == 'Выдан'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('Выдан')}"
                             data-ru="Выдан" data-en="Issued">Выдан</option>
-                    <option value="Закрыт" th:selected="${loan.status == 'Закрыт'}"
+                    <option value="Закрыт" th:selected="${loan.status == 'Закрыт'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('Закрыт')}"
                             data-ru="Закрыт" data-en="Closed">Закрыт</option>
-                    <option value="На продаже" th:selected="${loan.status == 'На продаже'}"
+                    <option value="На продаже" th:selected="${loan.status == 'На продаже'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('На продаже')}"
                             data-ru="В магазине" data-en="In Shop">В магазине</option>
-                    <option value="Отменена" th:selected="${loan.status == 'Отменена'}"
+                    <option value="Отменена" th:selected="${loan.status == 'Отменена'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('Отменена')}"
                             data-ru="Отменена" data-en="Cancelled">Отменена</option>
-                    <option value="Просрочен" th:selected="${loan.status == 'Просрочен'}"
+                    <option value="Просрочен" th:selected="${loan.status == 'Просрочен'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('Просрочен')}"
                             data-ru="Просрочен" data-en="Overdue">Просрочен</option>
-                    <option value="На складе" th:selected="${loan.status == 'На складе'}"
+                    <option value="На складе" th:selected="${loan.status == 'На складе'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('На складе')}"
                             data-ru="На складе" data-en="In Stock">На складе</option>
-                    <option value="Куплен" th:selected="${loan.status == 'Куплен'}"
+                    <option value="Куплен" th:selected="${loan.status == 'Куплен'}" th:disabled="${allowedStatuses != null and !allowedStatuses.contains('Куплен')}"
                             data-ru="Куплен" data-en="Purchased">Куплен</option>
                 </select>
             </div>

@@ -32,7 +32,8 @@ class AdminClientControllerIntegrationTest extends IntegrationTestBase {
     @WithMockUser(username = "manager", roles = {"MANAGER"})
     void create_validData_clientInDatabase() throws Exception {
         mvc.perform(post("/admin/clients/new").with(csrf())
-                        .param("fullName", "Новый Клиент")
+                        .param("lastName", "Новый")
+                        .param("firstName", "Клиент")
                         .param("phone", "+79995556677")
                         .param("email", "new@test.com"))
                 .andExpect(status().is3xxRedirection())
@@ -45,8 +46,9 @@ class AdminClientControllerIntegrationTest extends IntegrationTestBase {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void create_existingPhone_redirects() throws Exception {
         mvc.perform(post("/admin/clients/new").with(csrf())
-                        .param("fullName", "Другой")
-                        .param("phone", "+79991112233")
+                        .param("lastName", "Другой")
+                        .param("firstName", "Клиент")
+                        .param("phone", client.getPhone()) // телефон клиента из базы
                         .param("email", "uniq@test.com"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("error"));
@@ -56,7 +58,8 @@ class AdminClientControllerIntegrationTest extends IntegrationTestBase {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void create_badPhone_redirects() throws Exception {
         mvc.perform(post("/admin/clients/new").with(csrf())
-                        .param("fullName", "Клиент")
+                        .param("lastName", "Плохой")
+                        .param("firstName", "Телефон")
                         .param("phone", "8999"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("error"));
@@ -66,7 +69,7 @@ class AdminClientControllerIntegrationTest extends IntegrationTestBase {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void create_oneWordName_redirects() throws Exception {
         mvc.perform(post("/admin/clients/new").with(csrf())
-                        .param("fullName", "Иван")
+                        .param("lastName", "Иван")
                         .param("phone", "+79990001122"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("error"));
@@ -84,7 +87,8 @@ class AdminClientControllerIntegrationTest extends IntegrationTestBase {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void edit_newName_savedToDatabase() throws Exception {
         mvc.perform(post("/admin/clients/" + client.getId() + "/edit").with(csrf())
-                        .param("fullName", "Обновленный Клиент")
+                        .param("lastName", "Обновленный")
+                        .param("firstName", "Клиент")
                         .param("phone", "+79990000000")
                         .param("email", "upd@test.com"))
                 .andExpect(status().is3xxRedirection())
@@ -121,7 +125,9 @@ class AdminClientControllerIntegrationTest extends IntegrationTestBase {
         clientRepository.save(c);
 
         mvc.perform(post("/admin/clients/" + c.getId() + "/edit").with(csrf())
-                        .param("fullName", "Новый Клиент Петрович")
+                        .param("lastName", "Новый")
+                        .param("firstName", "Клиент")
+                        .param("middleName", "Петрович")
                         .param("phone", "+79991112244"))
                 .andExpect(status().is3xxRedirection());
         clientRepository.flush();

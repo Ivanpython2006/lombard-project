@@ -346,6 +346,11 @@ public class LoanController {
             return "redirect:/loans";
         }
         model.addAttribute("loan", loan);
+        // в выпадающем списке доступны только текущий статус и разрешенные переходы
+        Set<String> allowedStatuses = new java.util.HashSet<>(
+                ALLOWED_TRANSITIONS.getOrDefault(loan.getStatus(), Set.of()));
+        allowedStatuses.add(loan.getStatus());
+        model.addAttribute("allowedStatuses", allowedStatuses);
         return "edit_loan";
     }
 
@@ -367,7 +372,16 @@ public class LoanController {
 
         if (amount != null && amount.compareTo(BigDecimal.ZERO) > 0) loan.setAmount(amount);
         if (rate != null && rate.compareTo(BigDecimal.ZERO) >= 0) loan.setRate(rate);
-        if (status != null && !status.isBlank()) loan.setStatus(status);
+        // через форму редактирования действуют те же правила переходов, что и в changeStatus
+        String oldStatus = loan.getStatus();
+        if (status != null && !status.isBlank() && !status.equals(oldStatus)) {
+            if (!ALLOWED_TRANSITIONS.getOrDefault(oldStatus, Set.of()).contains(status)) {
+                ra.addFlashAttribute("error",
+                        "Недопустимый переход: <" + oldStatus + "> -> <" + status + ">");
+                return "redirect:/loans/" + id + "/edit";
+            }
+            loan.setStatus(status);
+        }
         if (dueDate != null && !dueDate.isBlank()) {
             try {
                 loan.setDueDate(LocalDate.parse(dueDate));

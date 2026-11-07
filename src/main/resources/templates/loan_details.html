@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Заем" data-en="Loan">Заем</title>
@@ -74,7 +75,8 @@
 <div class="main-content with-sidebar">
 
     <div class="breadcrumbs">
-        <a th:href="@{/loans}" data-ru="Все займы" data-en="All Loans">Все займы</a>
+        <a sec:authorize="!hasRole('CLIENT')" th:href="@{/loans}" data-ru="Все займы" data-en="All Loans">Все займы</a>
+        <a sec:authorize="hasRole('CLIENT')" th:href="@{/client/loans}" data-ru="Мои займы" data-en="My Loans">Мои займы</a>
         <span class="separator">/</span>
         <span class="current">
             <span data-ru="Заем " data-en="Loan ">Заем </span><b th:text="${loan.loanNumber}" style="color:#00b894;"></b>
