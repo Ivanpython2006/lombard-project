@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Мой профиль" data-en="My Profile">Мой профиль</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .profile-top {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 20px; flex-wrap: wrap; margin-bottom: 25px;
+            padding-bottom: 20px; border-bottom: 2px solid #e0e0e0;
+        }
+        .profile-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+        .profile-user-badge { display: flex; flex-direction: column; gap: 4px; text-align: right; }
+        .profile-user-label {
+            font-size: 11px; font-weight: 700; color: #666;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .profile-user-value { font-size: 16px; font-weight: 800; color: #00b894; }
+
+        .profile-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 25px; margin-bottom: 25px;
+        }
+        @media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr; } }
+
+        .profile-card { border: 1px solid #e0e0e0; background: #fff; padding: 30px; }
+        .profile-card h3 {
+            font-size: 13px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 20px;
+            padding-bottom: 12px; border-bottom: 2px solid #00b894;
+            color: #00b894;
+        }
+        .profile-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+
+        body.theme-dark .profile-top { border-bottom-color: #2a2a2a; }
+        body.theme-dark .profile-card { background: #1e1e1e; border-color: #2a2a2a; }
+        body.theme-dark .profile-user-label { color: #999; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <div class="profile-top">
+        <h1 class="profile-title" data-ru="Мой профиль" data-en="My Profile">Мой профиль</h1>
+        <div class="profile-user-badge">
+            <span class="profile-user-label" data-ru="Номер клиента" data-en="Client Number">Номер клиента</span>
+            <span class="profile-user-value" th:text="${client.clientNumber}">C2</span>
+        </div>
+    </div>
+
+    <form th:action="@{/client/profile}" method="post" id="profileForm">
+        <div class="profile-grid">
+            <div class="profile-card">
+                <h3 data-ru="Личные данные" data-en="Personal Information">Личные данные</h3>
+
+                <div class="form-group">
+                    <label data-ru="Логин" data-en="Login">Логин</label>
+                    <input type="text" th:value="${user.username}" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName" data-ru="Фамилия" data-en="Last Name">Фамилия</label>
+                    <input type="text" id="lastName" name="lastName"
+                           th:value="${client.lastName}" required minlength="2" maxlength="40"
+                           pattern="[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\-]+"
+                           title="Только буквы, минимум 2 символа">
+                </div>
+
+                <div class="form-group">
+                    <label for="firstName" data-ru="Имя" data-en="First Name">Имя</label>
+                    <input type="text" id="firstName" name="firstName"
+                           th:value="${client.firstName}" required minlength="2" maxlength="40"
+                           pattern="[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\-]+"
+                           title="Только буквы, минимум 2 символа">
+                </div>
+
+                <div class="form-group">
+                    <label for="middleName" data-ru="Отчество" data-en="Middle Name">Отчество</label>
+                    <input type="text" id="middleName" name="middleName"
+                           th:value="${client.middleName}" minlength="2" maxlength="40"
+                           pattern="[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\-]+"
+                           title="Только буквы, минимум 2 символа">
+                </div>
+
+                <div class="form-group">
+                    <label for="email" data-ru="Email" data-en="Email">Email</label>
+                    <input type="email" id="email" name="email"
+                           th:value="${client.email}" required maxlength="80">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone" data-ru="Телефон" data-en="Phone">Телефон</label>
+                    <input type="tel" id="phone" name="phone" th:value="${client.phone}"
+                           pattern="\+7\d{10}" required>
+                    <div class="hint" data-ru="Формат: +7XXXXXXXXXX (11 цифр)"
+                         data-en="Format: +7XXXXXXXXXX (11 digits)">Формат: +7XXXXXXXXXX (11 цифр)</div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h3 data-ru="Смена пароля" data-en="Change Password">Смена пароля</h3>
+
+                <div class="form-group">
+                    <label for="currentPassword" data-ru="Текущий пароль" data-en="Current password">Текущий пароль</label>
+                    <input type="password" id="currentPassword" name="currentPassword"
+                           data-ru="Оставьте пустым, если не меняете"
+                           data-en="Leave empty if not changing"
+                           placeholder="Оставьте пустым, если не меняете"
+                           autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label for="newPassword" data-ru="Новый пароль" data-en="New password">Новый пароль</label>
+                    <input type="password" id="newPassword" name="newPassword"
+                           data-ru="Минимум 6 символов" data-en="At least 6 characters"
+                           placeholder="Минимум 6 символов" minlength="6" autocomplete="off">
+                    <div class="hint" data-ru="Оставьте пустым, если не хотите менять пароль"
+                         data-en="Leave empty if you don't want to change password">
+                        Оставьте пустым, если не хотите менять пароль
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword" data-ru="Повторите новый пароль" data-en="Repeat new password">Повторите новый пароль</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword"
+                           data-ru="Повторите пароль" data-en="Repeat password"
+                           placeholder="Повторите пароль" minlength="6" autocomplete="off">
+                </div>
+
+                <div class="hint" style="margin-top: 20px; padding: 12px; background: #f8f9fa; border-left: 3px solid #00b894;">
+                    <span data-ru="Пароль должен содержать не менее 6 символов. Если вы не хотите менять пароль - оставьте все поля пустыми."
+                          data-en="The password must contain at least 6 characters. If you don't want to change the password, leave all fields empty.">
+                        Пароль должен содержать не менее 6 символов. Если вы не хотите менять пароль - оставьте все поля пустыми.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 10px;">
+            <button type="submit" class="btn-green"
+                    style="padding: 16px 48px; font-size: 14px;"
+                    data-ru="Сохранить изменения" data-en="Save Changes">Сохранить изменения</button>
+        </div>
+    </form>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Заказ" data-en="Order">Заказ</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .order-photo-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .order-photo-cell .photo-grid {
+            display: block;
+            margin: 0;
+            width: 60px;
+        }
+        .order-photo-cell .photo-thumb-block {
+            width: 60px;
+            border: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+        .order-photo-cell .photo-thumb-block img {
+            width: 100%;
+            height: 60px;
+            object-fit: cover;
+            display: block;
+            cursor: zoom-in;
+        }
+        .order-photo-cell .no-photo-thumb {
+            width: 60px;
+            height: 60px;
+        }
+        body.theme-dark .order-photo-cell .photo-thumb-block { border-color: #2a2a2a; background: #1e1e1e; }
+        body.theme-dark .order-photo-cell .photo-thumb-block img { background: #1e1e1e; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <h2>
+        <span data-ru="Заказ " data-en="Order ">Заказ </span>
+        <b th:text="${order.orderNumber}" style="color:#00b894;"></b>
+    </h2>
+
+    <a href="/admin/orders" class="btn-back"
+       data-ru="← К заказам" data-en="← Back to Orders">← К заказам</a>
+
+    <div class="card-info">
+        <h3 data-ru="Действия" data-en="Actions">Действия</h3>
+        <div class="actions">
+            <!-- кнопка заказ собран -->
+            <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"
+                  th:if="${order.status == 'Оплачен'}"
+                  onsubmit="return openConfirmForm(this, 'Отметить заказ как «Собран»?', 'Собран')"
+                  style="display:inline;">
+                <input type="hidden" name="status" value="Собран">
+                <button type="submit" class="action-btn issue"
+                        data-ru="Собран" data-en="Assembled">Собран</button>
+            </form>
+
+            <!-- кнопка заказ доставлен-->
+            <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"
+                  th:if="${order.status == 'Собран'}"
+                  onsubmit="return openConfirmForm(this, 'Отметить заказ как «Доставлен»?', 'Доставлен')"
+                  style="display:inline;">
+                <input type="hidden" name="status" value="Доставлен">
+                <button type="submit" class="action-btn approve"
+                        data-ru="Доставлен" data-en="Delivered">Доставлен</button>
+            </form>
+
+            <!-- кнопка отменить заказ -->
+            <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"
+                  th:if="${order.status != 'Доставлен' and order.status != 'Отменен'}"
+                  onsubmit="return openConfirmForm(this, 'Отменить заказ?', 'Отменить')"
+                  style="display:inline;">
+                <input type="hidden" name="status" value="Отменен">
+                <button type="submit" class="action-btn reject"
+                        data-ru="Отменить заказ" data-en="Cancel Order">Отменить заказ</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card-info" th:if="${order.client != null}">
+        <h3 data-ru="Клиент" data-en="Client">Клиент</h3>
+        <div class="info-grid">
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="Номер клиента" data-en="Client Number">Номер клиента</span>
+                <span class="info-value-block" th:text="${order.client.clientNumber}" style="color:#00b894; font-weight:700;"></span>
+            </div>
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="ФИО" data-en="Full Name">ФИО</span>
+                <span class="info-value-block" th:text="${order.client.fullName}"></span>
+            </div>
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="Email" data-en="Email">Email</span>
+                <span class="info-value-block" th:text="${order.client.email} ?: '-'"></span>
+            </div>
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="Телефон" data-en="Phone">Телефон</span>
+                <span class="info-value-block" th:text="${order.client.phone} ?: '-'"></span>
+            </div>
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="Контактный телефон заказа" data-en="Order Contact Phone">Контактный телефон заказа</span>
+                <span class="info-value-block" th:text="${order.contactPhone} ?: '-'"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-info">
+        <h3 data-ru="Доставка" data-en="Delivery">Доставка</h3>
+        <div class="info-grid">
+            <div class="info-row-block">
+                <span class="info-label-block" data-ru="Способ получения" data-en="Method">Способ получения</span>
+                <span class="info-value-block">
+                    <span th:if="${order.deliveryType == 'DELIVERY'}" data-ru="Доставка" data-en="Delivery">Доставка</span>
+                    <span th:if="${order.deliveryType == 'PICKUP'}" data-ru="Самовывоз" data-en="Pickup">Самовывоз</span>
+                </span>
+            </div>
+            <div class="info-row-block" style="grid-column: span 2;">
+                <span class="info-label-block" data-ru="Адрес" data-en="Address">Адрес</span>
+                <span class="info-value-block" th:text="${order.fullAddress}"></span>
+            </div>
+            <div class="info-row-block" style="grid-column: span 2;"
+                 th:if="${order.comment != null and !order.comment.isEmpty()}">
+                <span class="info-label-block" data-ru="Комментарий" data-en="Comment">Комментарий</span>
+                <span class="info-value-block" th:text="${order.comment}"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-info">
+        <h3 data-ru="Товары в заказе" data-en="Order Items">Товары в заказе</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th data-ru="Фото" data-en="Photo">Фото</th>
+                    <th data-ru="Номер вещи" data-en="Item Number">Номер вещи</th>
+                    <th data-ru="Название" data-en="Name">Название</th>
+                    <th data-ru="Описание" data-en="Description">Описание</th>
+                    <th style="text-align:right;" data-ru="Цена" data-en="Price">Цена</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item, iter : ${order.items}">
+                    <td th:text="${iter.count}"></td>
+                    <td>
+                        <div class="order-photo-cell">
+                            <div class="photo-grid"
+                                 style="display:block; margin:0;"
+                                 th:if="${item.loan != null and not #lists.isEmpty(item.loan.collaterals) and not #lists.isEmpty(item.loan.collaterals[0].photoUrls)}"
+                                 th:attr="data-viewer-info=${'{&quot;name&quot;:&quot;' + (item.loan.collaterals[0].name != null ? item.loan.collaterals[0].name : '') + '&quot;,&quot;number&quot;:&quot;' + (item.loan.collaterals[0].itemNumber != null ? item.loan.collaterals[0].itemNumber : '') + '&quot;,&quot;description&quot;:&quot;' + (item.loan.collaterals[0].description != null ? item.loan.collaterals[0].description : '') + '&quot;,&quot;price&quot;:&quot;' + (item.loan.collaterals[0].estimatedPrice != null ? item.loan.collaterals[0].estimatedPrice : '') + '&quot;}'}">
+                                <div class="photo-thumb-block">
+                                    <img th:src="${item.loan.collaterals[0].mainPhoto}" alt=""/>
+                                </div>
+                            </div>
+                            <div th:if="${item.loan == null or #lists.isEmpty(item.loan.collaterals) or #lists.isEmpty(item.loan.collaterals[0].photoUrls)}"
+                                 class="no-photo-box no-photo-thumb"
+                                 data-ru="Нет фото" data-en="No photo">Нет фото</div>
+                        </div>
+                    </td>
+                    <td>
+                        <b th:if="${item.loan != null and not #lists.isEmpty(item.loan.collaterals)}"
+                           th:text="${item.loan.collaterals[0].itemNumber}"
+                           style="color:#00b894;"></b>
+                        <span th:if="${item.loan == null or #lists.isEmpty(item.loan.collaterals)}">-</span>
+                    </td>
+                    <td th:text="${item.itemName}"></td>
+                    <td style="max-width:300px; word-break:break-word; text-align:left;"
+                        th:text="${item.loan != null and not #lists.isEmpty(item.loan.collaterals) ? item.loan.collaterals[0].description : '-'}"></td>
+                    <td style="text-align:right;"
+                        th:text="${#numbers.formatDecimal(item.itemPrice, 1, 2)} + ' ₽'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="total-box">
+        <div>
+            <div class="total-label" data-ru="Итого" data-en="Total">Итого</div>
+            <div class="total-value">
+                <span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}"></span> ₽
+            </div>
+        </div>
+        <div>
+            <div class="total-label" data-ru="Статус" data-en="Status">Статус</div>
+            <div class="total-value">
+                <span class="status-badge status-paid" th:if="${order.status == 'Оплачен'}" data-ru="Оплачен" data-en="Paid">Оплачен</span>
+                <span class="status-badge status-assembled" th:if="${order.status == 'Собран'}" data-ru="Собран" data-en="Assembled">Собран</span>
+                <span class="status-badge status-delivered" th:if="${order.status == 'Доставлен'}" data-ru="Доставлен" data-en="Delivered">Доставлен</span>
+                <span class="status-badge status-cancelled" th:if="${order.status == 'Отменен'}" data-ru="Отменен" data-en="Cancelled">Отменен</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+</body>
+</html>

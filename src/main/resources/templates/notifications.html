@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Уведомления" data-en="Notifications">Уведомления</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .notif-card {
+            border: 1px solid #e0e0e0; padding: 18px 22px;
+            background: #fff; display: flex; justify-content: space-between;
+            align-items: center; gap: 16px;
+            border-left: 5px solid #3b82f6; margin-bottom: 10px;
+        }
+        .notif-card.success { border-left-color: #10b981; }
+        .notif-card.warning { border-left-color: #f59e0b; }
+        .notif-card.danger  { border-left-color: #e74c3c; }
+        .notif-card.info    { border-left-color: #3b82f6; }
+        .notif-card.read-card { opacity: 0.65; background: #f8f9fa; }
+        .notif-content { flex: 1; }
+        .notif-message { font-size: 14px; color: #000; margin-bottom: 8px; line-height: 1.5; }
+        .notif-date { font-size: 12px; color: #999; }
+        .notif-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+        .notif-badge {
+            display: inline-block; padding: 3px 10px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid; white-space: nowrap;
+        }
+        .notif-badge.success { color: #10b981; border-color: #10b981; background: #ecfdf5; }
+        .notif-badge.warning { color: #f59e0b; border-color: #f59e0b; background: #fffbeb; }
+        .notif-badge.danger  { color: #e74c3c; border-color: #e74c3c; background: #fef2f2; }
+        .notif-badge.info    { color: #3b82f6; border-color: #3b82f6; background: #eff6ff; }
+        body.theme-dark .notif-card { background: #1e1e1e; border-color: #2a2a2a; }
+        body.theme-dark .notif-card.read-card { background: #181818; }
+        body.theme-dark .notif-message { color: #e0e0e0; }
+        body.theme-dark .notif-date { color: #666; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
+        <h2 style="margin-bottom:0;" data-ru="Уведомления" data-en="Notifications">Уведомления</h2>
+        <form th:action="${isStaff} ? @{/admin/notifications/mark-read} : @{/client/notifications/mark-read}"
+              method="post" th:if="${unreadCount > 0}">
+            <button type="submit" class="btn"
+                    data-ru="Отметить все прочитанными" data-en="Mark All Read">Отметить все прочитанными</button>
+        </form>
+    </div>
+
+    <div class="tabs">
+        <a th:href="@{${isStaff ? '/admin/notifications' : '/client/notifications'}(tab='unread')}"
+           class="tab" th:classappend="${tab == 'unread'} ? 'active' : ''">
+            <span data-ru="Непрочитанные" data-en="Unread">Непрочитанные</span>
+            <span th:if="${unreadCount > 0}" th:text="' (' + ${unreadCount} + ')'"></span>
+        </a>
+        <a th:href="@{${isStaff ? '/admin/notifications' : '/client/notifications'}(tab='read')}"
+           class="tab" th:classappend="${tab == 'read'} ? 'active' : ''">
+            <span data-ru="Прочитанные" data-en="Read">Прочитанные</span>
+        </a>
+    </div>
+
+    <div th:if="${not #lists.isEmpty(notifications)}">
+        <div th:each="n : ${notifications}"
+             class="notif-card"
+             th:classappend="${(n.type == 'SUCCESS' ? 'success' :
+                               (n.type == 'DANGER' ? 'danger' :
+                               (n.type == 'WARNING' ? 'warning' : 'info')))
+                             + (!n.read ? '' : ' read-card')}">
+
+            <div class="notif-content">
+                <div class="notif-message"
+                     th:attr="data-event=${n.eventType},
+                              data-arg1=${n.arg1},
+                              data-arg2=${n.arg2},
+                              data-arg3=${n.arg3},
+                              data-arg4=${n.arg4},
+                              data-arg5=${n.arg5}"></div>
+                <div class="notif-date" th:text="${#temporals.format(n.createdAt, 'dd.MM.yyyy HH:mm')}"></div>
+            </div>
+
+            <div class="notif-actions">
+                <span class="notif-badge info" th:if="${n.type == 'INFO' or n.type == null}" data-ru="Информация" data-en="Information">Информация</span>
+                <span class="notif-badge success" th:if="${n.type == 'SUCCESS'}" data-ru="Успешно" data-en="Success">Успешно</span>
+                <span class="notif-badge warning" th:if="${n.type == 'WARNING'}" data-ru="Внимание" data-en="Attention">Внимание</span>
+                <span class="notif-badge danger" th:if="${n.type == 'DANGER'}" data-ru="Важно" data-en="Important">Важно</span>
+
+                <form th:if="${!n.read}"
+                      th:action="${isStaff} ? @{/admin/notifications/{id}/read(id=${n.id})} : @{/client/notifications/{id}/read(id=${n.id})}"
+                      method="post" style="display:inline;">
+                    <button type="submit" class="btn-green"
+                            style="padding:8px 14px; font-size:11px;"
+                            data-ru="Прочитано" data-en="Read">Прочитано</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(notifications)}">
+        <span th:if="${tab == 'unread'}" data-ru="Непрочитанных уведомлений нет." data-en="No unread notifications.">Непрочитанных уведомлений нет.</span>
+        <span th:if="${tab == 'read'}" data-ru="Прочитанных уведомлений нет." data-en="No read notifications.">Прочитанных уведомлений нет.</span>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    (function() {
+
+        const TEMPLATES = {
+            ORDER_PLACED: {
+                ru: (a) => `Заказ ${a[0]} оформлен на сумму ${a[1]} руб. Товары: ${a[2]}. ${a[3]}`,
+                en: (a) => `Order ${a[0]} placed for ${a[1]} RUB. Items: ${a[2]}. ${a[3]}`
+            },
+            LOAN_CREATED: {
+                ru: (a) => `Заявка ${a[0]} («${a[1]}»). Сумма: ${a[2]} руб. Ожидайте оценки менеджера.`,
+                en: (a) => `Request ${a[0]} ("${a[1]}"). Amount: ${a[2]} RUB. Awaiting manager evaluation.`
+            },
+            LOAN_CREATED_STAFF: {
+                ru: (a) => `Новая заявка ${a[0]} от ${a[1]} (${a[2]}). Вещь: «${a[3]}». Сумма: ${a[4]} руб.`,
+                en: (a) => `New request ${a[0]} from ${a[1]} (${a[2]}). Item: "${a[3]}". Amount: ${a[4]} RUB.`
+            },
+            LOAN_APPROVED: {
+                ru: (a) => `Менеджер оценил вашу вещь («${a[0]}»). Запрошено: ${a[1]} руб. Одобрено: ${a[2]} руб. Ставка: ${a[3]}% К возврату: ${a[4]} руб. Откройте заявку, чтобы согласиться или отказаться.`,
+                en: (a) => `Manager evaluated your item ("${a[0]}"). Requested: ${a[1]} RUB Approved: ${a[2]} RUB Rate: ${a[3]}% To return: ${a[4]} RUB. Open the request to agree or decline.`
+            },
+            LOAN_AGREED: {
+                ru: (a) => `Вы согласились с условиями займа ${a[0]} («${a[1]}»). Заем переведен в статус «${a[2]}».`,
+                en: (a) => `You agreed to loan ${a[0]} ("${a[1]}") terms. Loan status: "${a[2]}".`
+            },
+            LOAN_AGREED_STAFF: {
+                ru: (a) => `Клиент ${a[0]} (${a[1]}) согласился с условиями займа ${a[2]} («${a[3]}»). Сумма: ${a[4]} руб.`,
+                en: (a) => `Client ${a[0]} (${a[1]}) agreed to loan ${a[2]} ("${a[3]}") terms. Amount: ${a[4]} RUB.`
+            },
+            LOAN_DECLINED: {
+                ru: (a) => `Вы отказались от условий займа ${a[0]} («${a[1]}»). Заявка отклонена.`,
+                en: (a) => `You declined loan ${a[0]} ("${a[1]}") terms. Request rejected.`
+            },
+            LOAN_DECLINED_STAFF: {
+                ru: (a) => `Клиент ${a[0]} (${a[1]}) отказался от условий займа ${a[2]} («${a[3]}»).`,
+                en: (a) => `Client ${a[0]} (${a[1]}) declined loan ${a[2]} ("${a[3]}") terms.`
+            },
+            LOAN_STATUS: {
+                ru: (a) => `Заем ${a[0]} («${a[1]}») - статус: «${a[2]}».`,
+                en: (a) => `Loan ${a[0]} ("${a[1]}") - status: "${a[2]}".`
+            },
+            LOAN_REJECTED: {
+                ru: (a) => `Заявка ${a[0]} («${a[1]}») отклонена.`,
+                en: (a) => `Request ${a[0]} ("${a[1]}") rejected.`
+            },
+            LOAN_ISSUED: {
+                ru: (a) => `Заем ${a[0]} («${a[1]}») выдан. К возврату: ${a[2]} руб. Вернуть до: ${a[3]}.`,
+                en: (a) => `Loan ${a[0]} ("${a[1]}") issued. To return: ${a[2]} RUB. Due: ${a[3]}.`
+            },
+            LOAN_CLOSED: {
+                ru: (a) => `Заем ${a[0]} («${a[1]}») закрыт. Спасибо!`,
+                en: (a) => `Loan ${a[0]} ("${a[1]}") closed. Thank you!`
+            },
+            LOAN_ON_SALE: {
+                ru: (a) => `Заем ${a[0]} («${a[1]}») выставлен на продажу.`,
+                en: (a) => `Loan ${a[0]} ("${a[1]}") put up for sale.`
+            },
+            LOAN_OVERDUE: {
+                ru: (a) => `Заем ${a[0]} («${a[1]}») просрочен. Срок возврата был ${a[2]}. Залог переведен на склад и будет выставлен на продажу.`,
+                en: (a) => `Loan ${a[0]} ("${a[1]}") overdue. Due was ${a[2]}. Collateral moved to warehouse and will be put up for sale.`
+            },
+            LOAN_OVERDUE_STAFF: {
+                ru: (a) => `Просрочка! Заем ${a[0]} («${a[1]}») переведен на склад. Клиент: ${a[2]}.`,
+                en: (a) => `Overdue! Loan ${a[0]} ("${a[1]}") moved to warehouse. Client: ${a[2]}.`
+            },
+            LOAN_REMINDER: {
+                ru: (a) => `Напоминание: по займу ${a[0]} («${a[1]}») ${a[2]} до срока возврата. Сумма: ${a[3]} руб. Вернуть до: ${a[4]}.`,
+                en: (a) => `Reminder: loan ${a[0]} ("${a[1]}") - ${a[2]} before due date. Amount: ${a[3]} RUB. Due: ${a[4]}.`
+            },
+            LOAN_EXTENDED: {
+                ru: (a) => `Заем ${a[0]} («${a[1]}») продлен на ${a[2]} мес. Новая дата возврата: ${a[3]}.`,
+                en: (a) => `Loan ${a[0]} ("${a[1]}") extended by ${a[2]} month(s). New due date: ${a[3]}.`
+            },
+            LOAN_REPAID: {
+                ru: (a) => `Заем ${a[0]} («${a[1]}») погашен. Списано ${a[2]} руб. со счета.`,
+                en: (a) => `Loan ${a[0]} ("${a[1]}") repaid. Debited: ${a[2]} RUB.`
+            },
+            LOAN_REPAID_STAFF: {
+                ru: (a) => `Клиент ${a[0]} (${a[1]}) погасил заем ${a[2]} («${a[3]}»). Сумма: ${a[4]} руб.`,
+                en: (a) => `Client ${a[0]} (${a[1]}) repaid loan ${a[2]} ("${a[3]}"). Amount: ${a[4]} RUB.`
+            },
+            LOAN_CANCELLED: {
+                ru: (a) => `Заявка ${a[0]} («${a[1]}») отменена.`,
+                en: (a) => `Request ${a[0]} ("${a[1]}") cancelled.`
+            },
+            LOAN_CHANGED: {
+                ru: (a) => `Менеджер изменил данные по вашей заявке ${a[0]}: ${a[1]}`,
+                en: (a) => `Manager changed data on your request ${a[0]}: ${a[1]}`
+            },
+            LOAN_OFFER_WITHDRAWN: {
+                ru: (a) => `Менеджер отозвал предложение по заявке ${a[0]} («${a[1]}»). Заявка отклонена.`,
+                en: (a) => `Manager withdrew offer for request ${a[0]} ("${a[1]}"). Request rejected.`
+            },
+            ACCOUNT_DEPOSIT: {
+                ru: (a) => `Счет пополнен на ${a[0]} руб. ${a[1] || ''}`,
+                en: (a) => `Account topped up: ${a[0]} RUB. ${a[1] || ''}`
+            },
+            ACCOUNT_WITHDRAW: {
+                ru: (a) => `С счета списано ${a[0]} руб. ${a[1] || ''}`,
+                en: (a) => `Debited from account: ${a[0]} RUB. ${a[1] || ''}`
+            },
+            ORDER_DELIVERED: {
+                ru: (a) => `Заказ ${a[0]} доставлен! Способ получения: ${a[2] || ''}.`,
+                en: (a) => `Order ${a[0]} has been delivered! Delivery method: ${a[2] || ''}.`
+            }
+        };
+
+        function translateStatus(s) {
+            const map = {
+                'В ожидании': 'Pending', 'Ожидает подтверждения': 'Awaiting Confirmation',
+                'Одобрен': 'Approved', 'Отклонен': 'Rejected', 'Выдан': 'Issued',
+                'Закрыт': 'Closed', 'На продаже': 'In Shop', 'Отменена': 'Cancelled',
+                'Просрочен': 'Overdue', 'На складе': 'In Stock', 'Куплен': 'Purchased'
+            };
+            return map[s] || s;
+        }
+
+        function renderNotification(el) {
+            const eventType = el.dataset.event || '';
+            const args = [
+                el.dataset.arg1 || '',
+                el.dataset.arg2 || '',
+                el.dataset.arg3 || '',
+                el.dataset.arg4 || '',
+                el.dataset.arg5 || ''
+            ];
+            const lang = (localStorage.getItem('app_lang') || 'ru') === 'en' ? 'en' : 'ru';
+            const tmpl = TEMPLATES[eventType];
+            if (!tmpl) {
+                el.textContent = eventType || '';
+                return;
+            }
+            if (eventType === 'LOAN_STATUS' || eventType === 'LOAN_AGREED') {
+                const idx = 2;
+                if (args[idx]) args[idx] = translateStatus(args[idx]);
+            }
+            el.textContent = tmpl[lang](args);
+        }
+
+        function renderAll() {
+            document.querySelectorAll('.notif-message[data-event]').forEach(renderNotification);
+        }
+        window.renderAllNotifications = renderAll;
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderAll);
+        } else {
+            renderAll();
+        }
+        window.addEventListener('load', renderAll);
+
+        document.addEventListener('click', function(e) {
+            if (e.target.closest && e.target.closest('.flag-btn')) {
+                setTimeout(renderAll, 50);
+            }
+        });
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Мои заказы" data-en="My Orders">Мои заказы</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .order-number-link {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #00b894;
+            text-decoration: none;
+            border: 1px solid #00b894;
+            background: #e6faf5;
+            letter-spacing: 0.3px;
+            transition: all 0.15s ease;
+        }
+        .order-number-link:hover { background: #00b894; color: #fff; }
+        body.theme-dark .order-number-link { background: #0a2e27; color: #00d4a8; border-color: #00d4a8; }
+        body.theme-dark .order-number-link:hover { background: #00d4a8; color: #111; }
+
+        .order-items-cell {
+            display: flex; flex-direction: column; gap: 2px; align-items: center;
+        }
+        .order-item-name { font-size: 13px; color: #000; font-weight: 500; }
+        .order-items-more { font-size: 11px; color: #999; font-weight: 600; }
+        body.theme-dark .order-item-name { color: #e0e0e0; }
+        body.theme-dark .order-items-more { color: #666; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+        <h2 style="margin-bottom:0;" data-ru="Мои заказы" data-en="My Orders">Мои заказы</h2>
+    </div>
+
+    <form class="filter-bar" method="get" th:action="@{/client/orders}" id="filterForm">
+        <input type="text" name="query" th:value="${query}"
+               data-ru="Поиск по номеру или товару..."
+               data-en="Search by number or item..."
+               placeholder="Поиск по номеру или товару..."
+               oninput="autoSubmit()">
+        <span class="filter-divider"></span>
+        <select name="sort" onchange="this.form.submit()">
+            <option value="date_desc" th:selected="${sort == 'date_desc'}" data-ru="Сначала новые" data-en="Newest first">Сначала новые</option>
+            <option value="date_asc" th:selected="${sort == 'date_asc'}" data-ru="Сначала старые" data-en="Oldest first">Сначала старые</option>
+            <option value="number" th:selected="${sort == 'number'}" data-ru="По номеру" data-en="By number">По номеру</option>
+            <option value="total" th:selected="${sort == 'total'}" data-ru="По сумме" data-en="By total">По сумме</option>
+        </select>
+        <span class="filter-divider"></span>
+        <select name="delivery" onchange="this.form.submit()">
+            <option value="" data-ru="Все способы" data-en="All methods">Все способы</option>
+            <option value="DELIVERY" th:selected="${filterDelivery == 'DELIVERY'}" data-ru="Доставка" data-en="Delivery">Доставка</option>
+            <option value="PICKUP" th:selected="${filterDelivery == 'PICKUP'}" data-ru="Самовывоз" data-en="Pickup">Самовывоз</option>
+        </select>
+    </form>
+
+    <div class="table-wrap" th:if="${not #lists.isEmpty(orders)}">
+        <table>
+            <thead>
+            <tr>
+                <th data-ru="Номер" data-en="Number">Номер</th>
+                <th data-ru="Дата" data-en="Date">Дата</th>
+                <th data-ru="Товары" data-en="Items">Товары</th>
+                <th data-ru="Сумма" data-en="Total">Сумма</th>
+                <th data-ru="Способ получения" data-en="Delivery Method">Способ получения</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${orders}">
+                <td>
+                    <a th:href="@{/client/orders/{id}(id=${order.id})}"
+                       class="order-number-link"
+                       th:text="${order.orderNumber}">M42925</a>
+                </td>
+                <td th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
+                <td>
+                    <div class="order-items-cell" th:if="${not #lists.isEmpty(order.items)}">
+                        <span class="order-item-name" th:text="${order.items[0].itemName}"></span>
+                        <span class="order-items-more"
+                              th:if="${#lists.size(order.items) > 1}"
+                              th:text="'+ ' + (${#lists.size(order.items)} - 1) + ' тов.'"></span>
+                    </div>
+                    <span th:if="${#lists.isEmpty(order.items)}">-</span>
+                </td>
+                <td><b th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)} + ' ₽'"></b></td>
+                <td>
+                    <span th:if="${order.deliveryType == 'DELIVERY'}" data-ru="Доставка" data-en="Delivery">Доставка</span>
+                    <span th:if="${order.deliveryType == 'PICKUP'}" data-ru="Самовывоз" data-en="Pickup">Самовывоз</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(orders)}"
+         data-ru="Заказов не найдено." data-en="No orders found.">
+        Заказов не найдено.
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    let autoSubmitTimer = null;
+    function autoSubmit() {
+        clearTimeout(autoSubmitTimer);
+        autoSubmitTimer = setTimeout(function() {
+            document.getElementById('filterForm').submit();
+        }, 500);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Управление магазином" data-en="Manage Shop">Управление магазином</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .item-cell {
+            display: flex; align-items: baseline; justify-content: center;
+            gap: 6px; flex-wrap: nowrap;
+        }
+        .item-cell .item-link {
+            color: #000; text-decoration: none;
+            border-bottom: 1px dashed #bbb;
+            transition: all 0.15s ease;
+            font-size: 14px; font-weight: 700; white-space: nowrap;
+            background: none; border-top: none; border-left: none; border-right: none;
+            padding: 0; cursor: pointer; font-family: inherit; line-height: 1;
+        }
+        .item-cell .item-link:hover { color: #00b894; border-bottom-color: #00b894; border-bottom-style: solid; }
+        .item-cell .item-number-static {
+            font-size: 13px; color: #00b894; font-weight: 700;
+            letter-spacing: 0.3px; white-space: nowrap; line-height: 1;
+            text-decoration: none; cursor: default;
+        }
+        body.theme-dark .item-cell .item-link { color: #e0e0e0; border-bottom-color: #555; }
+        body.theme-dark .item-cell .item-link:hover { color: #00d4a8; border-bottom-color: #00d4a8; }
+        body.theme-dark .item-cell .item-number-static { color: #00d4a8; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <h2 data-ru="Управление магазином" data-en="Manage Shop">Управление магазином</h2>
+
+    <form class="filter-bar" method="get" th:action="@{/shop/manage}" id="filterForm" style="margin-bottom:20px;">
+        <input type="text" name="query" th:value="${query}"
+               data-ru="Поиск по номеру, вещи или клиенту..."
+               data-en="Search by number, item or client..."
+               placeholder="Поиск по номеру, вещи или клиенту..."
+               oninput="autoSubmit()">
+        <span class="filter-divider"></span>
+        <select name="sort" onchange="this.form.submit()">
+            <option value="id" th:selected="${sort == 'id'}" data-ru="Сначала новые" data-en="Newest first">Сначала новые</option>
+            <option value="date_asc" th:selected="${sort == 'date_asc'}" data-ru="Сначала старые" data-en="Oldest first">Сначала старые</option>
+            <option value="price_desc" th:selected="${sort == 'price_desc'}" data-ru="По оценке (убыв.)" data-en="By valuation (desc)">По оценке (убыв.)</option>
+            <option value="price_asc" th:selected="${sort == 'price_asc'}" data-ru="По оценке (возр.)" data-en="By valuation (asc)">По оценке (возр.)</option>
+            <option value="item" th:selected="${sort == 'item'}" data-ru="По названию" data-en="By name">По названию</option>
+        </select>
+    </form>
+
+    <div class="table-wrap" th:if="${not #lists.isEmpty(loans)}">
+        <table>
+            <thead>
+            <tr>
+                <th data-ru="Вещь" data-en="Item">Вещь</th>
+                <th data-ru="Оценка" data-en="Valuation">Оценка</th>
+                <th data-ru="Клиент" data-en="Client">Клиент</th>
+                <th data-ru="Действия" data-en="Actions">Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="loan : ${loans}">
+                <td>
+                    <div class="item-cell" th:if="${not #lists.isEmpty(loan.collaterals)}">
+                        <button type="button" class="item-link"
+                                th:attr="data-loan-id=${loan.id}"
+                                onclick="openLoanFromItem(this)"
+                                th:text="${loan.collaterals[0].name} ?: '-'"></button>
+                        <span class="item-number-static"
+                              th:text="'(' + ${loan.collaterals[0].itemNumber} + ')'"></span>
+                    </div>
+                    <span th:if="${#lists.isEmpty(loan.collaterals)}">-</span>
+                </td>
+                <td>
+                    <span th:if="${not #lists.isEmpty(loan.collaterals) and loan.collaterals[0].estimatedPrice != null}"
+                          th:text="${#numbers.formatDecimal(loan.collaterals[0].estimatedPrice, 1, 2)} + ' ₽'"></span>
+                    <span th:if="${#lists.isEmpty(loan.collaterals) or loan.collaterals[0].estimatedPrice == null}">-</span>
+                </td>
+                <td th:text="${loan.client != null ? loan.client.fullName : '-'}"></td>
+                <td>
+                    <div style="display:flex; justify-content:center; align-items:center;">
+                        <form th:action="@{/shop/{id}/remove(id=${loan.id})}" method="post"
+                              onsubmit="return openConfirmForm(this, 'Снять товар с витрины? Он уйдет на склад.', 'Да')" style="margin:0;">
+                            <button type="submit" class="action-btn"
+                                    data-ru="Снять с витрины" data-en="Remove from Sale">Снять с витрины</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(loans)}"
+         data-ru="В магазине пока нет товаров." data-en="No items in the shop yet.">В магазине пока нет товаров.</div>
+
+    <div class="pagination-wrap" th:if="${totalPages != null and totalPages > 1}">
+        <div class="pagination-info">
+            <span data-ru="Всего" data-en="Total">Всего</span>:
+            <span th:text="${totalItems}"></span>,
+            <span data-ru="страница" data-en="page">страница</span>
+            <span th:text="${currentPage}"></span>
+            <span data-ru="из" data-en="of">из</span>
+            <span th:text="${totalPages}"></span>
+        </div>
+        <a th:if="${currentPage > 1}" th:href="@{/shop/manage(page=${currentPage - 1}, sort=${sort}, query=${query})}" class="page-btn">
+            ← <span data-ru="Назад" data-en="Back">Назад</span>
+        </a>
+        <span th:if="${currentPage <= 1}" class="page-btn disabled">
+            ← <span data-ru="Назад" data-en="Back">Назад</span>
+        </span>
+        <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/shop/manage(page=${i}, sort=${sort}, query=${query})}"
+           class="page-btn" th:classappend="${i == currentPage} ? 'active' : ''" th:text="${i}"></a>
+        <a th:if="${currentPage < totalPages}" th:href="@{/shop/manage(page=${currentPage + 1}, sort=${sort}, query=${query})}" class="page-btn">
+            <span data-ru="Вперед" data-en="Next">Вперед</span> →
+        </a>
+        <span th:if="${currentPage >= totalPages}" class="page-btn disabled">
+            <span data-ru="Вперед" data-en="Next">Вперед</span> →
+        </span>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    let autoSubmitTimer = null;
+    function autoSubmit() {
+        clearTimeout(autoSubmitTimer);
+        autoSubmitTimer = setTimeout(function() {
+            document.getElementById('filterForm').submit();
+        }, 500);
+    }
+    function openLoanFromItem(btn) {
+        const id = btn.getAttribute('data-loan-id');
+        if (id) window.location.href = '/loans/' + id;
+    }
+</script>
+
+</body>
+</html>

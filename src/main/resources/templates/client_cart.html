@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Корзина" data-en="Cart">Корзина</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .cart-card {
+            display: grid; grid-template-columns: 280px 1fr;
+            gap: 30px; border: 1px solid #e0e0e0;
+            background: #fff; padding: 30px; margin-bottom: 25px;
+        }
+        @media (max-width: 900px) { .cart-card { grid-template-columns: 1fr; } }
+
+        .cart-photo-box { width: 100%; max-width: 280px; }
+        .cart-photo-box .photo-slider-inner,
+        .cart-photo-box .photo-slider-empty { height: 280px !important; }
+
+        .cart-info { display: flex; flex-direction: column; gap: 18px; }
+        .cart-info-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .cart-info-name { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; color: #000; }
+        .cart-item-number {
+            display: inline-block; padding: 5px 12px; font-size: 13px; font-weight: 800;
+            color: #00b894; background: #e6faf5; border: 1px solid #00b894;
+            letter-spacing: 0.3px; white-space: nowrap;
+        }
+        body.theme-dark .cart-item-number { background: #0a2e27; color: #00d4a8; border-color: #00d4a8; }
+
+        .cart-info-desc { font-size: 14px; color: #666; line-height: 1.6; }
+        .cart-info-price { font-size: 32px; font-weight: 800; color: #00b894; letter-spacing: -0.5px; }
+        .cart-info-price-label {
+            font-size: 11px; font-weight: 700; color: #666;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
+        }
+
+        .cart-total {
+            border: 2px solid #00b894; background: #f0fdf9;
+            padding: 20px 24px; display: flex; justify-content: space-between;
+            align-items: center; gap: 20px; flex-wrap: wrap;
+        }
+        .cart-total-label {
+            font-size: 11px; font-weight: 700; color: #666;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
+        }
+        .cart-total-value { font-size: 32px; font-weight: 800; color: #00b894; letter-spacing: -1px; line-height: 1; }
+        .cart-total-balance { font-size: 13px; color: #666; }
+        .cart-total-balance b { color: #000; font-weight: 700; }
+        .cart-total-warning { font-size: 13px; color: #e74c3c; font-weight: 700; margin-top: 6px; }
+
+        .cart-form { display: flex; flex-direction: column; gap: 14px; }
+        .cart-remove-btn { align-self: flex-start; margin-top: 8px; }
+
+        body.theme-dark .cart-card { background: #1e1e1e; border-color: #2a2a2a; }
+        body.theme-dark .cart-info-name { color: #e0e0e0; }
+        body.theme-dark .cart-info-desc { color: #999; }
+        body.theme-dark .cart-total { background: #0a2e27; border-color: #00d4a8; }
+        body.theme-dark .cart-total-value { color: #00d4a8; }
+        body.theme-dark .cart-total-balance { color: #999; }
+        body.theme-dark .cart-total-balance b { color: #e0e0e0; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <h2 data-ru="Корзина" data-en="Cart" style="text-align:center; margin-bottom:25px;">Корзина</h2>
+
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+    <div class="alert alert-info" th:if="${info}" th:text="${info}"></div>
+
+    <div class="empty-cart" th:if="${#lists.isEmpty(items)}">
+        <div class="empty-cart-title" data-ru="Ваша корзина пуста" data-en="Your cart is empty">Ваша корзина пуста</div>
+        <div class="empty-cart-text"
+             data-ru="Начните покупки - загляните в магазин и добавьте понравившиеся товары."
+             data-en="Start shopping - visit the shop and add items you like.">
+            Начните покупки - загляните в магазин и добавьте понравившиеся товары.
+        </div>
+        <div style="margin-top:20px;">
+            <a href="/shop" class="btn-green" data-ru="Перейти в магазин" data-en="Go to Shop">Перейти в магазин</a>
+        </div>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(items)}">
+        <div class="cart-card" th:each="item : ${items}">
+            <div class="cart-photo-box">
+                <div th:if="${not #lists.isEmpty(item.loan.collaterals)}"
+                     th:replace="~{fragments/photo-slider :: slider(${item.loan.collaterals[0].photoUrls}, ${item.loan.collaterals[0].name}, 280)}"></div>
+                <div th:if="${#lists.isEmpty(item.loan.collaterals)}"
+                     class="photo-slider-empty"
+                     style="height:280px;"
+                     data-ru="Нет фото" data-en="No photo">Нет фото</div>
+            </div>
+
+            <div class="cart-info">
+                <div class="cart-info-title-row">
+                    <div class="cart-info-name"
+                         th:text="${not #lists.isEmpty(item.loan.collaterals) ? item.loan.collaterals[0].name : '-'}"></div>
+                    <span th:if="${not #lists.isEmpty(item.loan.collaterals)}"
+                          class="cart-item-number"
+                          th:text="'(' + ${item.loan.collaterals[0].itemNumber} + ')'"></span>
+                </div>
+
+                <div class="cart-info-desc"
+                     th:text="${not #lists.isEmpty(item.loan.collaterals) ? item.loan.collaterals[0].description : '-'}"></div>
+
+                <div>
+                    <div class="cart-info-price-label" data-ru="Цена" data-en="Price">Цена</div>
+                    <div class="cart-info-price"
+                         th:text="${not #lists.isEmpty(item.loan.collaterals) and item.loan.collaterals[0].estimatedPrice != null}
+                                  ? ${#numbers.formatDecimal(item.loan.collaterals[0].estimatedPrice, 1, 2)} + ' ₽'
+                                  : '-'"></div>
+                </div>
+
+                <form th:action="@{/client/cart/remove/{id}(id=${item.id})}" method="post"
+                      onsubmit="return openConfirmForm(this, 'Удалить товар из корзины?', 'Да')"
+                      style="margin:0;" class="cart-remove-btn">
+                    <button type="submit" class="btn-red"
+                            style="padding: 8px 16px; font-size:12px;"
+                            data-ru="Удалить" data-en="Remove">Удалить</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="cart-card" style="grid-template-columns: 1fr;">
+            <div style="display: flex; flex-direction: column; gap: 22px;">
+                <div class="cart-total">
+                    <div>
+                        <div class="cart-total-label" data-ru="Итого к оплате" data-en="Total to Pay">Итого к оплате</div>
+                        <div class="cart-total-value">
+                            <span th:text="${#numbers.formatDecimal(total, 1, 2)}"></span> ₽
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="cart-total-balance">
+                            <span data-ru="Ваш баланс:" data-en="Your balance:">Ваш баланс:</span>
+                            <b th:text="${#numbers.formatDecimal(account.balance, 1, 2)} + ' ₽'"></b>
+                        </div>
+                        <div class="cart-total-warning" th:if="${!canPay}"
+                             data-ru="Недостаточно средств - пополните счет"
+                             data-en="Insufficient funds - top up your account">
+                            Недостаточно средств - пополните счет
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid #f0f0f0;"
+                        data-ru="Оформление заказа" data-en="Checkout">Оформление заказа</h3>
+
+                    <div th:if="${!canPay}" style="margin-bottom:20px;">
+                        <a href="/client/account" class="btn-green"
+                           data-ru="Пополнить счет" data-en="Top Up Account">Пополнить счет</a>
+                    </div>
+
+                    <form th:action="@{/client/cart/checkout}" method="post" th:if="${canPay}"
+                          id="checkoutForm" class="cart-form"
+                          onsubmit="return openConfirmForm(this, 'Оплатить заказ? Сумма будет списана с вашего баланса.', 'Оплатить')">
+
+                        <div class="form-group">
+                            <label data-ru="Способ получения" data-en="Delivery method">Способ получения</label>
+                            <div class="delivery-toggle">
+                                <label>
+                                    <input type="radio" name="deliveryType" value="DELIVERY" checked
+                                           onchange="toggleDelivery()">
+                                    <span data-ru="Доставка" data-en="Delivery">Доставка</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="deliveryType" value="PICKUP"
+                                           onchange="toggleDelivery()">
+                                    <span data-ru="Самовывоз" data-en="Pickup">Самовывоз</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="deliveryFields">
+                            <div class="form-group">
+                                <label for="city" data-ru="Город *" data-en="City *">Город *</label>
+                                <input type="text" id="city" name="city" placeholder="Москва" required>
+                            </div>
+                            <div class="form-group">
+                                <div class="row-3">
+                                    <div>
+                                        <label for="street" data-ru="Улица *" data-en="Street *">Улица *</label>
+                                        <input type="text" id="street" name="street" placeholder="Ленина" required>
+                                    </div>
+                                    <div>
+                                        <label for="building" data-ru="Дом *" data-en="Building *">Дом *</label>
+                                        <input type="text" id="building" name="building" placeholder="15" required>
+                                    </div>
+                                    <div>
+                                        <label for="apartment" data-ru="Квартира" data-en="Apartment">Квартира</label>
+                                        <input type="text" id="apartment" name="apartment" placeholder="301">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="pickupFields" style="display:none;">
+                            <div class="form-group">
+                                <label data-ru="Адрес пункта выдачи" data-en="Pickup point address">Адрес пункта выдачи</label>
+                                <input type="text" name="pickupAddress"
+                                       value="г. Москва, ул. Финансовая, д. 15, офис 301" readonly
+                                       style="background:#f8f9fa; color:#666;">
+                            </div>
+                            <div class="alert alert-info" style="margin-bottom:20px;"
+                                 data-ru="Забрать заказ можно с 09:00 до 20:00, в будние дни."
+                                 data-en="You can pick up your order from 09:00 to 20:00 on weekdays.">
+                                Забрать заказ можно с 09:00 до 20:00, в будние дни.
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactPhone" data-ru="Контактный телефон *" data-en="Contact phone *">Контактный телефон *</label>
+                            <input type="tel" id="contactPhone" name="contactPhone" th:value="${client.phone}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="comment" data-ru="Комментарий" data-en="Comment">Комментарий</label>
+                            <textarea id="comment" name="comment"
+                                      data-ru="Необязательно" data-en="Optional"
+                                      placeholder="Необязательно" maxlength="500"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-green"
+                                style="width:100%; padding:18px; font-size:15px;">
+                            <span data-ru="Подтвердить и оплатить" data-en="Confirm and Pay">Подтвердить и оплатить</span>
+                            <span th:text="${#numbers.formatDecimal(total, 1, 2)}"></span> ₽
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    function toggleDelivery() {
+        const type = document.querySelector('input[name="deliveryType"]:checked').value;
+        const deliveryFields = document.getElementById('deliveryFields');
+        const pickupFields = document.getElementById('pickupFields');
+        if (type === 'DELIVERY') {
+            deliveryFields.style.display = '';
+            pickupFields.style.display = 'none';
+            document.getElementById('city').required = true;
+            document.getElementById('street').required = true;
+            document.getElementById('building').required = true;
+        } else {
+            deliveryFields.style.display = 'none';
+            pickupFields.style.display = '';
+            document.getElementById('city').required = false;
+            document.getElementById('street').required = false;
+            document.getElementById('building').required = false;
+        }
+    }
+</script>
+</body>
+</html>

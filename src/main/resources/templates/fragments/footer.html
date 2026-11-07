@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<div th:fragment="footer" class="site-footer">
+
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h4 data-ru="Контакты" data-en="Contacts">Контакты</h4>
+            <a href="tel:+79150212301">+7 (915) 021-23-01</a>
+            <a href="mailto:info@lombard.ru">info@lombard.ru</a>
+        </div>
+
+        <div class="footer-col">
+            <h4 data-ru="Разделы" data-en="Sections">Разделы</h4>
+
+            <div sec:authorize="hasRole('ADMIN')">
+                <a href="/admin/notifications" data-ru="Уведомления" data-en="Notifications">Уведомления</a>
+                <a href="/loans" data-ru="Все займы" data-en="All Loans">Все займы</a>
+                <a href="/admin/intake" data-ru="Прием вещей" data-en="Intake">Прием вещей</a>
+                <a href="/collaterals" data-ru="Залоги" data-en="Collaterals">Залоги</a>
+                <a href="/client/search" data-ru="Клиенты" data-en="Clients">Клиенты</a>
+                <a href="/shop/manage" data-ru="Магазин" data-en="Shop">Магазин</a>
+                <a href="/admin/orders" data-ru="Заказы" data-en="Orders">Заказы</a>
+                <a href="/admin/warehouse" data-ru="Склад" data-en="Warehouse">Склад</a>
+                <a href="/admin/users" data-ru="Пользователи" data-en="Users">Пользователи</a>
+                <a href="/admin/stats" data-ru="Статистика" data-en="Statistics">Статистика</a>
+            </div>
+
+            <div sec:authorize="hasRole('MANAGER')">
+                <a href="/admin/notifications" data-ru="Уведомления" data-en="Notifications">Уведомления</a>
+                <a href="/loans" data-ru="Все займы" data-en="All Loans">Все займы</a>
+                <a href="/admin/intake" data-ru="Прием вещей" data-en="Intake">Прием вещей</a>
+                <a href="/collaterals" data-ru="Залоги" data-en="Collaterals">Залоги</a>
+                <a href="/client/search" data-ru="Клиенты" data-en="Clients">Клиенты</a>
+                <a href="/shop/manage" data-ru="Магазин" data-en="Shop">Магазин</a>
+                <a href="/admin/orders" data-ru="Заказы" data-en="Orders">Заказы</a>
+                <a href="/admin/warehouse" data-ru="Склад" data-en="Warehouse">Склад</a>
+            </div>
+
+            <div sec:authorize="hasRole('CLIENT')">
+                <a href="/client/loans/new" data-ru="Создать заявку" data-en="Create Request">Создать заявку</a>
+                <a href="/client/loans" data-ru="Мои займы" data-en="My Loans">Мои займы</a>
+                <a href="/shop" data-ru="Магазин" data-en="Shop">Магазин</a>
+                <a href="/client/cart" data-ru="Корзина" data-en="Cart">Корзина</a>
+                <a href="/client/orders" data-ru="Мои заказы" data-en="My Orders">Мои заказы</a>
+                <a href="/client/account" data-ru="Мой счет" data-en="My Account">Мой счет</a>
+                <a href="/client/notifications" data-ru="Уведомления" data-en="Notifications">Уведомления</a>
+                <a href="/client/profile" data-ru="Мой профиль" data-en="My Profile">Мой профиль</a>
+                <a href="/support" data-ru="Поддержка" data-en="Support">Поддержка</a>
+            </div>
+
+            <a href="/about" data-ru="Об авторе" data-en="About">Об авторе</a>
+        </div>
+
+        <div class="footer-col">
+            <h4 data-ru="Режим работы" data-en="Working Hours">Режим работы</h4>
+            <p data-ru="Пн–Пт: 09:00 – 20:00" data-en="Mon–Fri: 09:00 – 20:00">Пн–Пт: 09:00 – 20:00</p>
+            <p data-ru="Сб–Вс: 10:00 – 18:00" data-en="Sat–Sun: 10:00 – 18:00">Сб–Вс: 10:00 – 18:00</p>
+        </div>
+
+        <div class="footer-col">
+            <h4 data-ru="Информация" data-en="Information">Информация</h4>
+            <p data-ru="Учебный проект. Все данные вымышлены."
+               data-en="Educational project. All data is fictional.">
+                Учебный проект. Все данные вымышлены.
+            </p>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <span data-ru="© 2026 Ломбард. Все права защищены."
+              data-en="© 2026 Lombard. All rights reserved.">
+            © 2026 Ломбард. Все права защищены.
+        </span>
+        <span data-ru="Разработано в рамках курсовой работы"
+              data-en="Developed as part of a coursework">
+            Разработано в рамках курсовой работы
+        </span>
+    </div>
+
+</div>
+
+</body>
+</html>

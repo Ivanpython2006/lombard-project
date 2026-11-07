@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="sidebar" class="sidebar-wrapper">
+
+    <div class="sidebar" id="mainSidebar">
+        <nav class="sidebar-nav" id="sidebarNav">
+
+            <a th:href="@{/}" data-path="/" class="nav-home"
+               data-ru="Главная" data-en="Home">Главная</a>
+
+            <div th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''MANAGER'')')}">
+                <a th:href="@{/admin/notifications}" data-path="/admin/notifications" data-ru="Уведомления" data-en="Notifications">Уведомления</a>
+
+                <a th:href="@{/loans}" data-path="/loans" class="nav-with-badge">
+                    <span data-ru="Все займы" data-en="All Loans">Все займы</span>
+                    <span th:if="${pendingLoansCount != null and pendingLoansCount > 0}" class="nav-badge" th:text="${pendingLoansCount > 99 ? '99+' : pendingLoansCount}"></span>
+                </a>
+
+                <a th:href="@{/admin/intake}" data-path="/admin/intake" class="nav-with-badge">
+                    <span data-ru="Прием вещей" data-en="Intake">Прием вещей</span>
+                    <span th:if="${pendingIntakeCount != null and pendingIntakeCount > 0}" class="nav-badge" th:text="${pendingIntakeCount > 99 ? '99+' : pendingIntakeCount}"></span>
+                </a>
+
+                <a th:href="@{/collaterals}" data-path="/collaterals" data-ru="Залоги" data-en="Collaterals">Залоги</a>
+                <a th:href="@{/client/search}" data-path="/client/search" data-ru="Клиенты" data-en="Clients">Клиенты</a>
+                <a th:href="@{/shop/manage}" data-path="/shop/manage" data-ru="Магазин" data-en="Shop">Магазин</a>
+
+                <a th:href="@{/admin/orders}" data-path="/admin/orders" class="nav-with-badge">
+                    <span data-ru="Заказы" data-en="Orders">Заказы</span>
+                    <span th:if="${pendingOrdersCount != null and pendingOrdersCount > 0}" class="nav-badge" th:text="${pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}"></span>
+                </a>
+
+                <a th:href="@{/admin/warehouse}" data-path="/admin/warehouse" data-ru="Склад" data-en="Warehouse">Склад</a>
+            </div>
+
+            <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                <a th:href="@{/admin/users}" data-path="/admin/users" data-ru="Пользователи" data-en="Users">Пользователи</a>
+                <a th:href="@{/admin/stats}" data-path="/admin/stats" data-ru="Статистика" data-en="Statistics">Статистика</a>
+            </div>
+
+            <div th:if="${#authorization.expression('hasRole(''CLIENT'')')}">
+                <a th:href="@{/client/loans/new}" data-path="/client/loans/new" data-ru="Создать заявку" data-en="Create Request">Создать заявку</a>
+
+                <a th:href="@{/client/loans}" data-path="/client/loans" class="nav-with-badge">
+                    <span data-ru="Мои займы" data-en="My Loans">Мои займы</span>
+                    <span th:if="${activeLoansCount != null and activeLoansCount > 0}" class="nav-badge" th:text="${activeLoansCount > 99 ? '99+' : activeLoansCount}"></span>
+                </a>
+
+                <a th:href="@{/shop}" data-path="/shop" data-ru="Магазин" data-en="Shop">Магазин</a>
+
+                <a th:href="@{/client/cart}" data-path="/client/cart" class="nav-with-badge">
+                    <span data-ru="Корзина" data-en="Cart">Корзина</span>
+                    <span th:if="${cartCount != null and cartCount > 0}" class="nav-badge" th:text="${cartCount > 99 ? '99+' : cartCount}"></span>
+                </a>
+
+                <a th:href="@{/client/orders}" data-path="/client/orders" data-ru="Мои заказы" data-en="My Orders">Мои заказы</a>
+
+                <!-- УБРАНА Ё: Мой счет -->
+                <a th:href="@{/client/account}" data-path="/client/account" data-ru="Мой счет" data-en="My Account">Мой счет</a>
+
+                <a th:href="@{/client/notifications}" data-path="/client/notifications" class="nav-with-badge">
+                    <span data-ru="Уведомления" data-en="Notifications">Уведомления</span>
+                    <span th:if="${unreadNotifications != null and unreadNotifications > 0}" class="nav-badge badge-danger" th:text="${unreadNotifications > 99 ? '99+' : unreadNotifications}"></span>
+                </a>
+
+                <a th:href="@{/client/profile}" data-path="/client/profile" data-ru="Мой профиль" data-en="My Profile">Мой профиль</a>
+                <a th:href="@{/support}" data-path="/support" data-ru="Поддержка" data-en="Support">Поддержка</a>
+            </div>
+
+            <a th:href="@{/about}" data-path="/about" data-ru="Об авторе" data-en="About">Об авторе</a>
+
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-btn" data-ru="Выход" data-en="Logout">Выход</button>
+            </form>
+        </nav>
+
+        <div class="sidebar-switchers">
+            <div class="switcher-col">
+                <div class="switcher-label" data-ru="Язык" data-en="Language">Язык</div>
+                <div class="switcher-row">
+                    <button type="button" class="flag-btn" data-lang="ru" title="Русский">
+                        <svg viewBox="0 0 9 6" width="28" height="19" preserveAspectRatio="none">
+                            <rect width="9" height="2" fill="#fff"/>
+                            <rect y="2" width="9" height="2" fill="#0039A6"/>
+                            <rect y="4" width="9" height="2" fill="#D52B1E"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="flag-btn" data-lang="en" title="English">
+                        <svg viewBox="0 0 7410 3900" width="28" height="19" preserveAspectRatio="none">
+                            <rect width="7410" height="3900" fill="#fff"/>
+                            <g fill="#B22234">
+                                <rect width="7410" height="300" y="0"/>
+                                <rect width="7410" height="300" y="600"/>
+                                <rect width="7410" height="300" y="1200"/>
+                                <rect width="7410" height="300" y="1800"/>
+                                <rect width="7410" height="300" y="2400"/>
+                                <rect width="7410" height="300" y="3000"/>
+                                <rect width="7410" height="300" y="3600"/>
+                            </g>
+                            <rect width="2964" height="2100" fill="#3C3B6E"/>
+                            <g fill="#fff">
+                                <circle cx="300" cy="240" r="60"/><circle cx="600" cy="240" r="60"/><circle cx="900" cy="240" r="60"/>
+                                <circle cx="1200" cy="240" r="60"/><circle cx="1500" cy="240" r="60"/><circle cx="1800" cy="240" r="60"/>
+                                <circle cx="2100" cy="240" r="60"/><circle cx="2400" cy="240" r="60"/><circle cx="2700" cy="240" r="60"/>
+                                <circle cx="450" cy="480" r="60"/><circle cx="750" cy="480" r="60"/><circle cx="1050" cy="480" r="60"/>
+                                <circle cx="1350" cy="480" r="60"/><circle cx="1650" cy="480" r="60"/><circle cx="1950" cy="480" r="60"/>
+                                <circle cx="2250" cy="480" r="60"/><circle cx="2550" cy="480" r="60"/>
+                                <circle cx="300" cy="720" r="60"/><circle cx="600" cy="720" r="60"/><circle cx="900" cy="720" r="60"/>
+                                <circle cx="1200" cy="720" r="60"/><circle cx="1500" cy="720" r="60"/><circle cx="1800" cy="720" r="60"/>
+                                <circle cx="2100" cy="720" r="60"/><circle cx="2400" cy="720" r="60"/><circle cx="2700" cy="720" r="60"/>
+                                <circle cx="450" cy="960" r="60"/><circle cx="750" cy="960" r="60"/><circle cx="1050" cy="960" r="60"/>
+                                <circle cx="1350" cy="960" r="60"/><circle cx="1650" cy="960" r="60"/><circle cx="1950" cy="960" r="60"/>
+                                <circle cx="2250" cy="960" r="60"/><circle cx="2550" cy="960" r="60"/>
+                            </g>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="switcher-col">
+                <div class="switcher-label" data-ru="Тема" data-en="Theme">Тема</div>
+                <div class="switcher-row">
+                    <button type="button" class="theme-btn" data-theme="light" title="Светлая">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="4"/>
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="theme-btn" data-theme="dark" title="Темная">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('app_theme') || 'light';
+            const savedLang  = localStorage.getItem('app_lang')  || 'ru';
+            if (savedTheme === 'dark') document.body.classList.add('theme-dark');
+            document.documentElement.setAttribute('lang', savedLang);
+
+            function applyLanguage(lang) {
+                const toEn = (lang === 'en');
+                document.querySelectorAll('[data-ru][data-en]').forEach(el => {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = toEn ? el.dataset.en : el.dataset.ru;
+                        return;
+                    }
+                    let textNode = null;
+                    for (let i = 0; i < el.childNodes.length; i++) {
+                        const node = el.childNodes[i];
+                        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                            textNode = node; break;
+                        }
+                    }
+                    const value = toEn ? el.dataset.en : el.dataset.ru;
+                    if (textNode) {
+                        const leading = textNode.textContent.match(/^\s*/)[0];
+                        const trailing = textNode.textContent.match(/\s*$/)[0];
+                        textNode.textContent = leading + value + trailing;
+                    } else if (el.children.length === 0) {
+                        el.textContent = value;
+                    }
+                });
+                const titleEl = document.querySelector('title');
+                if (titleEl && titleEl.dataset && titleEl.dataset.ru && titleEl.dataset.en) {
+                    titleEl.textContent = toEn ? titleEl.dataset.en : titleEl.dataset.ru;
+                }
+            }
+            window.applyLanguage = applyLanguage;
+
+            function applyOnReady() {
+                applyLanguage(localStorage.getItem('app_lang') || 'ru');
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', applyOnReady);
+            } else {
+                applyOnReady();
+            }
+            window.addEventListener('load', applyOnReady);
+
+            function positionSidebar() {
+                const sb = document.getElementById('mainSidebar');
+                if (!sb) return;
+                const bodyRect = document.body.getBoundingClientRect();
+                sb.style.left = bodyRect.left + 'px';
+                sb.style.width = '250px';
+            }
+            positionSidebar();
+            window.addEventListener('resize', positionSidebar);
+            window.addEventListener('scroll', positionSidebar, { passive: true });
+            window.addEventListener('wheel', function(e) {
+                if (e.ctrlKey || e.metaKey) setTimeout(positionSidebar, 50);
+            }, { passive: true });
+            window.addEventListener('load', positionSidebar);
+            setTimeout(positionSidebar, 300);
+
+            const path = window.location.pathname;
+            const links = document.querySelectorAll('#sidebarNav a[data-path]');
+            links.forEach(a => a.classList.remove('active'));
+            let bestMatch = null;
+            links.forEach(a => {
+                const href = a.getAttribute('data-path');
+                if (href === path) {
+                    if (!bestMatch || href.length > bestMatch.length) bestMatch = href;
+                } else if (path.startsWith(href + '/')) {
+                    if (!bestMatch || href.length > bestMatch.length) bestMatch = href;
+                }
+            });
+            if (!bestMatch && (path === '/' || path === '')) bestMatch = '/';
+            if (bestMatch) {
+                links.forEach(a => {
+                    if (a.getAttribute('data-path') === bestMatch) a.classList.add('active');
+                });
+            }
+
+            function updateSwitchers() {
+                const th = localStorage.getItem('app_theme') || 'light';
+                const lg = localStorage.getItem('app_lang')  || 'ru';
+                document.querySelectorAll('.sidebar-switchers .theme-btn').forEach(b =>
+                    b.classList.toggle('selected', b.dataset.theme === th));
+                document.querySelectorAll('.sidebar-switchers .flag-btn').forEach(b =>
+                    b.classList.toggle('selected', b.dataset.lang === lg));
+            }
+            window.updateSwitchers = updateSwitchers;
+            updateSwitchers();
+
+            document.querySelectorAll('.sidebar-switchers .theme-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const theme = this.dataset.theme;
+                    document.body.classList.toggle('theme-dark', theme === 'dark');
+                    localStorage.setItem('app_theme', theme);
+                    updateSwitchers();
+                });
+            });
+
+            document.querySelectorAll('.sidebar-switchers .flag-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const lang = this.dataset.lang;
+                    localStorage.setItem('app_lang', lang);
+                    document.documentElement.setAttribute('lang', lang);
+                    applyLanguage(lang);
+                    updateSwitchers();
+                });
+            });
+        })();
+    </script>
+
+</div>
+
+</body>
+</html>

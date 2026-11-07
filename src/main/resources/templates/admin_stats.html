@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title data-ru="Статистика" data-en="Statistics">Статистика</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+  <h2 data-ru="Статистика" data-en="Statistics">Статистика</h2>
+
+  <h3 data-ru="Общая информация" data-en="General Information">Общая информация</h3>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" th:text="${totalUsers}">0</div>
+      <div class="stat-label" data-ru="Всего пользователей" data-en="Total Users">Всего пользователей</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" th:text="${totalClients}">0</div>
+      <div class="stat-label" data-ru="Всего клиентов" data-en="Total Clients">Всего клиентов</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" th:text="${totalLoans}">0</div>
+      <div class="stat-label" data-ru="Всего займов" data-en="Total Loans">Всего займов</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" th:text="${#numbers.formatDecimal(avgLoanAmount, 1, 2)}">0.00</div>
+      <div class="stat-label" data-ru="Средняя сумма займа" data-en="Average Loan Amount">Средняя сумма займа</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">
+        <span th:text="${#numbers.formatDecimal(avgWaitingDays, 1, 1)}">0.0</span>
+        <span data-ru=" дн." data-en=" days"> дн.</span>
+      </div>
+      <div class="stat-label" data-ru="Среднее время ожидания" data-en="Average Waiting Time">Среднее время ожидания</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">
+        <span th:text="${#numbers.formatDecimal(avgTermMonths, 1, 1)}">0.0</span>
+        <span data-ru=" мес." data-en=" mo."> мес.</span>
+      </div>
+      <div class="stat-label" data-ru="Средний срок займа" data-en="Average Loan Term">Средний срок займа</div>
+    </div>
+  </div>
+
+  <h3 data-ru="Финансы" data-en="Finances">Финансы</h3>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" th:text="${#numbers.formatDecimal(totalIssued, 1, 0)} + ' ₽'">0 ₽</div>
+      <div class="stat-label" data-ru="В обороте (выдано)" data-en="In Circulation">В обороте (выдано)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" th:text="${#numbers.formatDecimal(totalClosed, 1, 0)} + ' ₽'">0 ₽</div>
+      <div class="stat-label" data-ru="Возвращено (закрыто)" data-en="Returned (Closed)">Возвращено (закрыто)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" th:text="${#numbers.formatDecimal(totalSold, 1, 0)} + ' ₽'">0 ₽</div>
+      <div class="stat-label" data-ru="Выручка с продаж" data-en="Sales Revenue">Выручка с продаж</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" th:text="${overdueCount}">0</div>
+      <div class="stat-label" data-ru="Просроченных займов" data-en="Overdue Loans">Просроченных займов</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">
+        <span th:text="${#numbers.formatDecimal(overduePercent, 1, 1)}">0.0</span>%
+      </div>
+      <div class="stat-label" data-ru="Процент просрочек" data-en="Overdue Rate">Процент просрочек</div>
+    </div>
+  </div>
+
+  <h3 data-ru="Количество займов по статусам" data-en="Number of Loans by Status">Количество займов по статусам</h3>
+  <div class="chart-container">
+    <div class="no-data" th:if="${loansByStatus == null || loansByStatus.isEmpty()}"
+         data-ru="Нет данных для отображения" data-en="No data to display">
+      Нет данных для отображения
+    </div>
+    <div class="chart-wrapper" th:unless="${loansByStatus == null || loansByStatus.isEmpty()}">
+      <canvas id="loansCountChart"></canvas>
+    </div>
+  </div>
+
+  <h3 data-ru="Сумма займов по статусам (руб.)" data-en="Total Loan Amount by Status (RUB)">Сумма займов по статусам (руб.)</h3>
+  <div class="chart-container">
+    <div class="no-data" th:if="${amountsByStatus == null || amountsByStatus.isEmpty()}"
+         data-ru="Нет данных для отображения" data-en="No data to display">
+      Нет данных для отображения
+    </div>
+    <div class="chart-wrapper" th:unless="${amountsByStatus == null || amountsByStatus.isEmpty()}">
+      <canvas id="loansAmountChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  const loansByStatus   = /*[[${loansByStatus}]]*/ {};
+  const amountsByStatus = /*[[${amountsByStatus}]]*/ {};
+  const hasCountData  = Object.keys(loansByStatus).length > 0;
+  const hasAmountData = Object.keys(amountsByStatus).length > 0;
+
+  const STATUS_TRANSLATIONS = {
+      'В ожидании': 'Pending',
+      'Одобрен':    'Approved',
+      'Отклонен':   'Rejected',
+      'Выдан':      'Issued',
+      'Закрыт':     'Closed',
+      'Продан':     'On Sale',
+      'Отменена':   'Cancelled',
+      'Просрочен':  'Overdue',
+      'На складе':  'In Stock',
+      'Куплен':     'Purchased'
+  };
+
+  function getLang() { return localStorage.getItem('app_lang') || 'ru'; }
+  function translateStatus(s) {
+      if (getLang() === 'en') return STATUS_TRANSLATIONS[s] || s;
+      return s;
+  }
+  function isDark() { return document.body.classList.contains('theme-dark'); }
+
+  function getColors() {
+      if (isDark()) {
+          return { text: '#e0e0e0', textBold: '#ffffff', grid: '#2a2a2a', barCount: '#00b894', barAmount: '#00b894', valueText: '#ffffff' };
+      }
+      return { text: '#666666', textBold: '#000000', grid: '#eeeeee', barCount: '#00b894', barAmount: '#000000', valueText: '#000000' };
+  }
+
+  const valueLabelsPlugin = {
+      id: 'valueLabels',
+      afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          const c = getColors();
+          const currency = chart.options.plugins.valueLabels?.currency === true;
+          ctx.save();
+          ctx.font = 'bold 14px Inter, sans-serif';
+          ctx.fillStyle = c.valueText;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          chart.data.datasets.forEach((dataset, dsIndex) => {
+              const meta = chart.getDatasetMeta(dsIndex);
+              meta.data.forEach((bar, i) => {
+                  const value = dataset.data[i];
+                  if (value === null || value === undefined) return;
+                  let label;
+                  if (currency) {
+                      label = Number(value).toLocaleString('ru-RU', { maximumFractionDigits: 0 }) + ' ₽';
+                  } else {
+                      label = Number(value).toLocaleString('ru-RU');
+                  }
+                  ctx.fillText(label, bar.x, bar.y - 6);
+              });
+          });
+          ctx.restore();
+      }
+  };
+
+  Chart.register(valueLabelsPlugin);
+
+  function buildOptions(currency) {
+      const c = getColors();
+      return {
+          responsive: true, maintainAspectRatio: false, animation: false,
+          layout: { padding: { top: 30, right: 10, bottom: 20, left: 0 } },
+          plugins: { legend: { display: false }, tooltip: { enabled: false }, valueLabels: { currency: currency } },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  grid: { color: c.grid, drawBorder: false },
+                  border: { display: false },
+                  ticks: {
+                      color: c.text, font: { size: 12 }, padding: 8,
+                      callback: function(value) {
+                          if (currency) {
+                              if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + ' млн';
+                              if (value >= 1_000)     return (value / 1_000).toFixed(0) + ' тыс';
+                          }
+                          return value;
+                      }
+                  }
+              },
+              x: {
+                  grid: { display: false, drawBorder: false },
+                  border: { display: false },
+                  ticks: {
+                      color: c.textBold, font: { size: 11, weight: '600' }, padding: 8,
+                      maxRotation: 45, // Наклоняем подписи, чтобы не наезжали
+                      minRotation: 45  // Наклоняем подписи, чтобы не наезжали
+                  }
+              }
+          }
+      };
+  }
+
+  const charts = {};
+  function createCharts() {
+      Object.values(charts).forEach(ch => ch && ch.destroy && ch.destroy());
+      charts.count = null;
+      charts.amount = null;
+      const c = getColors();
+
+      if (hasCountData) {
+          const translatedLabels = Object.keys(loansByStatus).map(translateStatus);
+          const ctx1 = document.getElementById('loansCountChart').getContext('2d');
+          charts.count = new Chart(ctx1, {
+              type: 'bar',
+              data: { labels: translatedLabels, datasets: [{ label: 'Количество', data: Object.values(loansByStatus), backgroundColor: c.barCount, borderColor: c.barCount, borderWidth: 0, borderRadius: 4, barThickness: 60, maxBarThickness: 70, hoverBackgroundColor: c.barCount, hoverBorderColor: c.barCount }] },
+              options: buildOptions(false)
+          });
+      }
+      if (hasAmountData) {
+          const translatedLabels = Object.keys(amountsByStatus).map(translateStatus);
+          const ctx2 = document.getElementById('loansAmountChart').getContext('2d');
+          charts.amount = new Chart(ctx2, {
+              type: 'bar',
+              data: { labels: translatedLabels, datasets: [{ label: 'Сумма', data: Object.values(amountsByStatus), backgroundColor: c.barAmount, borderColor: c.barAmount, borderWidth: 0, borderRadius: 4, barThickness: 60, maxBarThickness: 70, hoverBackgroundColor: c.barAmount, hoverBorderColor: c.barAmount }] },
+              options: buildOptions(true)
+          });
+      }
+  }
+  createCharts();
+
+  const observer = new MutationObserver((mutations) => {
+      mutations.forEach((m) => { if (m.attributeName === 'class') createCharts(); });
+  });
+  observer.observe(document.body, { attributes: true });
+
+  window.addEventListener('storage', function(e) { if (e.key === 'app_lang') createCharts(); });
+  document.addEventListener('click', function(e) {
+      if (e.target.closest('#langOptions .settings-option')) setTimeout(createCharts, 100);
+  });
+</script>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+</body>
+</html>

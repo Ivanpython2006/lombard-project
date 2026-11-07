@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Редактировать заем" data-en="Edit Loan">Редактировать заем</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .file-upload-wrap { position: relative; display: block; }
+        .file-upload-input { position: absolute; left: -9999px; opacity: 0; }
+        .file-upload-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 12px 24px; font-size: 13px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: #00b894; background: #fff; border: 2px dashed #00b894;
+            cursor: pointer; font-family: inherit; transition: all 0.15s ease;
+        }
+        .file-upload-btn:hover { background: #00b894; color: #fff; border-style: solid; }
+        .file-upload-name { display: block; margin-top: 8px; font-size: 12px; color: #666; font-style: italic; }
+        body.theme-dark .file-upload-btn { background: #1e1e1e; color: #00d4a8; border-color: #00d4a8; }
+        body.theme-dark .file-upload-btn:hover { background: #00d4a8; color: #111; }
+        body.theme-dark .file-upload-name { color: #999; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar-center">
+    <div class="form-container" style="max-width:600px;">
+        <h2>
+            <span data-ru="Редактировать заем " data-en="Edit Loan ">Редактировать заем </span><b th:text="${loan.loanNumber}" style="color:#00b894;"></b>
+        </h2>
+
+        <div class="alert alert-error" th:if="${error}" th:text="${error}"
+             style="padding:12px; border:1px solid #e74c3c; background:#fdeaea; margin-bottom:16px;"></div>
+
+        <div th:if="${loan.collaterals != null and not #lists.isEmpty(loan.collaterals) and not #lists.isEmpty(loan.collaterals[0].photoUrls)}"
+             style="margin-bottom:24px;">
+            <h3 data-ru="Фото вещи" data-en="Item Photos"
+                style="font-size:16px; font-weight:700; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #eee;">
+                Фото вещи
+            </h3>
+            <div class="photo-grid">
+                <div th:each="u : ${loan.collaterals[0].photoUrls}" class="photo-thumb-block">
+                    <img th:src="${u}" alt="" loading="lazy"/>
+                    <form th:action="@{/collaterals/{id}/photo/delete(id=${loan.collaterals[0].id})}"
+                          method="post"
+                          onsubmit="return openConfirmForm(this, 'Удалить это фото?', 'Удалить')">
+                        <input type="hidden" name="photoUrl" th:value="${u}">
+                        <input type="hidden" name="returnTo" th:value="'/loans/' + ${loan.id} + '/edit'">
+                        <button type="submit" data-ru="Удалить" data-en="Delete">Удалить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${loan.collaterals != null and not #lists.isEmpty(loan.collaterals) and #lists.isEmpty(loan.collaterals[0].photoUrls)}"
+             class="hint"
+             style="padding:14px; background:#f8f9fa; border-left:3px solid #f59e0b; margin-bottom:20px;"
+             data-ru="Фото пока нет." data-en="No photos yet.">
+            Фото пока нет.
+        </div>
+
+        <div th:if="${loan.collaterals == null or #lists.isEmpty(loan.collaterals)}"
+             class="hint" style="padding:16px; background:#f8f9fa; border-left:3px solid #f59e0b; margin-bottom:20px;">
+            <span data-ru="У этого займа нет привязанной вещи (коллатерала). Фото добавить нельзя."
+                  data-en="This loan has no linked item (collateral). Photos cannot be added.">
+                У этого займа нет привязанной вещи (коллатерала). Фото добавить нельзя.
+            </span>
+        </div>
+
+        <form th:action="@{/loans/{id}/edit(id=${loan.id})}" method="post"
+              enctype="multipart/form-data">
+
+            <div class="form-group">
+                <label data-ru="Номер займа" data-en="Loan Number">Номер займа</label>
+                <input type="text" th:value="${loan.loanNumber}" readonly
+                       style="color:#00b894; font-weight:700;">
+            </div>
+
+            <div class="form-group">
+                <label for="amount" data-ru="Сумма займа (₽)" data-en="Loan Amount (₽)">Сумма займа (₽)</label>
+                <input type="number" id="amount" name="amount"
+                       th:value="${loan.amount}" step="0.01" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rate" data-ru="Ставка (%)" data-en="Rate (%)">Ставка (%)</label>
+                <input type="number" id="rate" name="rate"
+                       th:value="${loan.rate}" step="0.01" min="0" max="100">
+            </div>
+
+            <div class="form-group">
+                <label for="status" data-ru="Статус" data-en="Status">Статус</label>
+                <select id="status" name="status" required>
+                    <option value="В ожидании" th:selected="${loan.status == 'В ожидании'}"
+                            data-ru="В ожидании" data-en="Pending">В ожидании</option>
+                    <option value="Ожидает подтверждения" th:selected="${loan.status == 'Ожидает подтверждения'}"
+                            data-ru="Ожидает подтверждения" data-en="Awaiting Confirmation">Ожидает подтверждения</option>
+                    <option value="Одобрен" th:selected="${loan.status == 'Одобрен'}"
+                            data-ru="Одобрен" data-en="Approved">Одобрен</option>
+                    <option value="Отклонен" th:selected="${loan.status == 'Отклонен'}"
+                            data-ru="Отклонен" data-en="Rejected">Отклонен</option>
+                    <option value="Выдан" th:selected="${loan.status == 'Выдан'}"
+                            data-ru="Выдан" data-en="Issued">Выдан</option>
+                    <option value="Закрыт" th:selected="${loan.status == 'Закрыт'}"
+                            data-ru="Закрыт" data-en="Closed">Закрыт</option>
+                    <option value="На продаже" th:selected="${loan.status == 'На продаже'}"
+                            data-ru="В магазине" data-en="In Shop">В магазине</option>
+                    <option value="Отменена" th:selected="${loan.status == 'Отменена'}"
+                            data-ru="Отменена" data-en="Cancelled">Отменена</option>
+                    <option value="Просрочен" th:selected="${loan.status == 'Просрочен'}"
+                            data-ru="Просрочен" data-en="Overdue">Просрочен</option>
+                    <option value="На складе" th:selected="${loan.status == 'На складе'}"
+                            data-ru="На складе" data-en="In Stock">На складе</option>
+                    <option value="Куплен" th:selected="${loan.status == 'Куплен'}"
+                            data-ru="Куплен" data-en="Purchased">Куплен</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="dueDate" data-ru="Вернуть до" data-en="Due Date">Вернуть до</label>
+                <input type="date" id="dueDate" name="dueDate" th:value="${loan.dueDate}">
+                <div class="hint" data-ru="Дата возврата займа" data-en="Loan repayment date">Дата возврата займа</div>
+            </div>
+
+            <div th:if="${loan.collaterals != null and not #lists.isEmpty(loan.collaterals)}">
+                <div class="form-group" style="margin-top:12px;">
+                    <label for="photos" data-ru="Добавить фото" data-en="Add Photos">Добавить фото</label>
+
+                    <label class="file-upload-wrap" for="photos">
+                        <input type="file" id="photos" name="photos"
+                               accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple
+                               class="file-upload-input"
+                               onchange="showSelectedFiles(this)">
+                        <span class="file-upload-btn">
+                            <span data-ru="Выберите фото" data-en="Choose Photo">Выберите фото</span>
+                        </span>
+                    </label>
+                    <span class="file-upload-name" id="fileName"
+                          data-ru="Файл не выбран" data-en="No file chosen">Файл не выбран</span>
+
+                    <div class="hint" style="margin-top:8px;"
+                         data-ru="JPG или PNG, до 5 МБ каждое. Можно выбрать сразу несколько."
+                         data-en="JPG or PNG, up to 5 MB each. You can select multiple.">
+                        JPG или PNG, до 5 МБ каждое. Можно выбрать сразу несколько.
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-green"
+                    data-ru="Сохранить изменения" data-en="Save Changes">Сохранить изменения</button>
+        </form>
+
+        <a th:href="@{/loans/{id}(id=${loan.id})}" class="btn-back"
+           style="display:block; width:fit-content; margin:20px auto 0;"
+           data-ru="← Назад к займу" data-en="← Back to Loan">← Назад к займу</a>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    function showSelectedFiles(input) {
+        const nameEl = document.getElementById('fileName');
+        if (!nameEl) return;
+        const isEn = (localStorage.getItem('app_lang') === 'en');
+        if (input.files && input.files.length > 0) {
+            nameEl.textContent = (input.files.length === 1)
+                ? input.files[0].name
+                : (isEn ? 'Files selected: ' + input.files.length
+                        : 'Выбрано файлов: ' + input.files.length);
+            nameEl.style.color = '#00b894';
+            nameEl.style.fontStyle = 'normal';
+            nameEl.style.fontWeight = '600';
+        } else {
+            nameEl.textContent = isEn ? 'No file chosen' : 'Файл не выбран';
+            nameEl.style.color = '#666';
+            nameEl.style.fontStyle = 'italic';
+            nameEl.style.fontWeight = 'normal';
+        }
+    }
+</script>
+
+</body>
+</html>

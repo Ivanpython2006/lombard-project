@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Магазин" data-en="Shop">Магазин</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+    <style>
+        .card .photo-slider-inner,
+        .card .photo-slider-empty {
+            height: 220px !important;
+            margin-bottom: 12px;
+        }
+        .card .photo-slider-btn { width: 34px; height: 34px; font-size: 22px; }
+        .card .photo-slider-prev { left: 6px; }
+        .card .photo-slider-next { right: 6px; }
+        .card .photo-slider-counter { font-size: 11px; padding: 3px 9px; bottom: 8px; right: 8px; }
+        .card .photo-slider-zoomhint { display: none; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content with-sidebar">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:25px; gap:20px; flex-wrap:wrap;">
+        <div>
+            <h2 style="margin-bottom:8px;" data-ru="Магазин" data-en="Shop">Магазин</h2>
+            <p class="subtitle" style="margin-bottom:0;"
+               data-ru="Вещи из ломбарда, выставленные на продажу"
+               data-en="Items from the pawnshop available for sale">Вещи из ломбарда, выставленные на продажу</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a th:if="${isAdminOrManager}" href="/shop/manage" class="btn"
+               data-ru="Управление магазином" data-en="Manage Shop">Управление магазином</a>
+
+            <a th:if="${isClient}" href="/client/cart" class="btn"
+               style="border-color:#00b894; color:#00b894;">
+                <span data-ru="Корзина" data-en="Cart">Корзина</span>
+                <span th:if="${cartCount > 0}" th:text="'(' + ${cartCount} + ')'"></span>
+            </a>
+        </div>
+    </div>
+
+    <div class="cards" th:if="${not #lists.isEmpty(loans)}">
+        <div class="card" th:each="loan : ${loans}">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
+                <span th:if="${not #lists.isEmpty(loan.collaterals)}"
+                      th:text="${loan.collaterals[0].itemNumber}"
+                      style="background:#00b894; color:#fff; padding:4px 10px; font-size:12px; font-weight:700; letter-spacing:0.5px;">
+                </span>
+                <div th:if="${cartLoanIds != null and cartLoanIds.contains(loan.id)}">
+                    <span class="card-cart-badge" data-ru="В корзине" data-en="In Cart">В корзине</span>
+                </div>
+            </div>
+
+            <div th:if="${not #lists.isEmpty(loan.collaterals)}"
+                 th:replace="~{fragments/photo-slider :: slider(${loan.collaterals[0].photoUrls}, ${loan.collaterals[0].name}, 220)}"></div>
+            <div th:if="${#lists.isEmpty(loan.collaterals)}"
+                 class="photo-slider-empty"
+                 style="height:220px; margin-bottom:12px;"
+                 data-ru="Нет фото" data-en="No photo">Нет фото</div>
+
+            <div class="card-name"
+                 th:text="${not #lists.isEmpty(loan.collaterals) ? loan.collaterals[0].name : '-'}"></div>
+            <div class="card-desc"
+                 th:text="${not #lists.isEmpty(loan.collaterals) ? loan.collaterals[0].description : '-'}"></div>
+            <div>
+                <div class="card-label" data-ru="Цена" data-en="Price">Цена</div>
+                <div class="card-price"
+                     th:text="${not #lists.isEmpty(loan.collaterals) and loan.collaterals[0].estimatedPrice != null}
+                              ? ${#numbers.formatDecimal(loan.collaterals[0].estimatedPrice, 1, 2)} + ' ₽'
+                              : '-'"></div>
+            </div>
+
+            <th:block th:if="${isClient}">
+                <a th:if="${cartLoanIds != null and cartLoanIds.contains(loan.id)}"
+                   href="/client/cart"
+                   class="btn-cart btn-in-cart"
+                   style="width:100%; margin-top: auto;"
+                   data-ru="В корзине перейти" data-en="In Cart Open">
+                    В корзине перейти
+                </a>
+                <form th:unless="${cartLoanIds != null and cartLoanIds.contains(loan.id)}"
+                      th:action="@{/shop/{id}/add-to-cart(id=${loan.id})}" method="post"
+                      style="width:100%; margin-top: auto;">
+                    <button type="submit" class="btn-cart" style="width:100%;"
+                            data-ru="В корзину" data-en="Add to Cart">
+                        В корзину
+                    </button>
+                </form>
+            </th:block>
+
+            <a th:if="${isAdminOrManager}"
+               href="/shop/manage"
+               class="btn-cart btn-manage"
+               style="width:100%; margin-top: auto;"
+               data-ru="Управление магазином" data-en="Manage Shop">
+                Управление магазином
+            </a>
+        </div>
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(loans)}"
+         data-ru="В магазине пока нет товаров." data-en="No items in the shop yet.">
+        В магазине пока нет товаров.
+    </div>
+
+    <div class="pagination-wrap" th:if="${totalPages != null and totalPages > 1}">
+        <div class="pagination-info">
+            <span data-ru="Всего товаров" data-en="Total items">Всего товаров</span>:
+            <span th:text="${totalItems}"></span>,
+            <span data-ru="страница" data-en="page">страница</span> <span th:text="${currentPage}"></span>
+            <span data-ru="из" data-en="of">из</span> <span th:text="${totalPages}"></span>
+        </div>
+        <a th:if="${currentPage > 1}" th:href="@{/shop(page=${currentPage - 1})}" class="page-btn">
+            ← <span data-ru="Назад" data-en="Back">Назад</span>
+        </a>
+        <span th:if="${currentPage <= 1}" class="page-btn disabled">
+            ← <span data-ru="Назад" data-en="Back">Назад</span>
+        </span>
+        <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/shop(page=${i})}"
+           class="page-btn" th:classappend="${i == currentPage} ? 'active' : ''" th:text="${i}"></a>
+        <a th:if="${currentPage < totalPages}" th:href="@{/shop(page=${currentPage + 1})}" class="page-btn">
+            <span data-ru="Вперед" data-en="Next">Вперед</span> →
+        </a>
+        <span th:if="${currentPage >= totalPages}" class="page-btn disabled">
+            <span data-ru="Вперед" data-en="Next">Вперед</span> →
+        </span>
+    </div>
+</div>
+
+<div th:replace="~{fragments/settings :: settings}"></div>
+
+<script>
+    document.querySelectorAll('.card .photo-slider').forEach(function (slider) {
+        const card = slider.closest('.card');
+        if (!card) return;
+        const nameEl = card.querySelector('.card-name');
+        const descEl = card.querySelector('.card-desc');
+        const priceEl = card.querySelector('.card-price');
+        const numberEl = card.querySelector('span[style*="background:#00b894"]');
+        const info = {
+            name: nameEl ? nameEl.textContent.trim() : '',
+            number: numberEl ? numberEl.textContent.trim() : '',
+            description: descEl ? descEl.textContent.trim() : '',
+            price: priceEl ? priceEl.textContent.trim().replace(/\s*₽\s*$/, '') : ''
+        };
+        slider.setAttribute('data-viewer-info', JSON.stringify(info));
+    });
+</script>
+
+</body>
+</html>

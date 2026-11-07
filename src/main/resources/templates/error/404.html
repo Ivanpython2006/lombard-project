@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title data-ru="Страница не найдена" data-en="Page Not Found">Страница не найдена</title>
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+</head>
+<body class="error-page">
+<div class="error-box">
+    <div class="error-code">404</div>
+    <h1 data-ru="Страница не найдена" data-en="Page Not Found">Страница не найдена</h1>
+    <p data-ru="Запрошенная страница не существует. Проверьте URL или вернитесь на главную."
+       data-en="The requested page does not exist. Check the URL or return to the home page.">
+        Запрошенная страница не существует.<br>
+        Проверьте URL или вернитесь на главную.
+    </p>
+    <a href="/" class="btn" data-ru="← Вернуться на главную" data-en="← Back to Home">← Вернуться на главную</a>
+</div>
+</body>
+</html>
