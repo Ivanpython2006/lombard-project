@@ -24,7 +24,8 @@ public class RegisterForm {
     @Pattern(regexp = "[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\\-]+", message = "Только буквы, минимум 2")
     private String firstName;
 
-    @Pattern(regexp = "[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\\-]*", message = "Только буквы")
+    // отчество необязательное: пустая строка тоже подходит
+    @Pattern(regexp = "([А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\\-]+)?", message = "Отчество: только буквы, минимум 2")
     private String middleName;
 
     @NotBlank

@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -81,6 +83,24 @@ class LoanControllerTest extends ControllerTestBase {
         when(loanService.findAll()).thenReturn(List.of(l));
 
         mvc.perform(get("/loans/export")).andExpect(status().isOk());
+    }
+
+    // через форму редактирования тоже нельзя перевести закрытый заем обратно в «Выдан»
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void edit_forbiddenTransition_notSaved() throws Exception {
+        Loan l = new Loan(); l.setId(1L); l.setStatus("Закрыт");
+        when(loanService.findById(1L)).thenReturn(l);
+
+        mvc.perform(post("/loans/1/edit").with(csrf())
+                        .param("amount", "1000")
+                        .param("status", "Выдан"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loans/1/edit"))
+                .andExpect(flash().attributeExists("error"));
+
+        verify(loanService, never()).save(any());
+        assertEquals("Закрыт", l.getStatus());
     }
 
     // кривую дату просто игнорю остальное сохраняется

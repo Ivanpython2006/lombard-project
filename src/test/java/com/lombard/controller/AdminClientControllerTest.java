@@ -8,6 +8,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,13 +29,23 @@ class AdminClientControllerTest extends ControllerTestBase {
         client.setId(1L);
     }
 
+    // форма отправляет ФИО по частям, как настоящая страница
+    private MockHttpServletRequestBuilder withName(MockHttpServletRequestBuilder req, String fullName) {
+        String[] parts = fullName.isBlank() ? new String[0] : fullName.trim().split("\\s+");
+        String[] names = {"lastName", "firstName", "middleName"};
+        for (int i = 0; i < parts.length && i < names.length; i++) {
+            req.param(names[i], parts[i]);
+        }
+        return req;
+    }
+
     private MockHttpServletRequestBuilder createForm(String fullName, String phone) {
-        return post("/admin/clients/new").with(csrf()).param("fullName", fullName).param("phone", phone);
+        return withName(post("/admin/clients/new").with(csrf()), fullName).param("phone", phone);
     }
 
     private MockHttpServletRequestBuilder editForm(String fullName, String phone) {
         when(clientService.findById(1L)).thenReturn(client);
-        return post("/admin/clients/1/edit").with(csrf()).param("fullName", fullName).param("phone", phone);
+        return withName(post("/admin/clients/1/edit").with(csrf()), fullName).param("phone", phone);
     }
 
     //создание
@@ -49,10 +60,11 @@ class AdminClientControllerTest extends ControllerTestBase {
         mvc.perform(createForm("Иванов Иван", "+79991112233").param("email", "a@b.ru"))
                 .andExpect(status().is3xxRedirection());
 
-        verify(clientService).save(any(Client.class));
+        // ФИО собирается из фамилии и имени
+        verify(clientService).save(argThat(c -> "Иванов Иван".equals(c.getFullName())));
     }
 
-    // фио обязательно и должно быть минимум из двух слов
+    // фамилия и имя обязательны
     @Test
     void create_emptyOrOneWordName_notSaved() throws Exception {
         mvc.perform(createForm("", "+79991112233")).andExpect(status().is3xxRedirection());

@@ -38,6 +38,10 @@ class DtoValidationTest {
         assertEquals("Иванович", f.getMiddleName());
         assertEquals("u@test.com", f.getEmail());
         assertEquals("+79991112233", f.getPhone());
+
+        // отчество необязательное: пустое поле из формы тоже проходит
+        f.setMiddleName("");
+        assertTrue(validator.validate(f).isEmpty());
     }
 
     @Test
