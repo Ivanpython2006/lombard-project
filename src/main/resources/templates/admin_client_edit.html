@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Редактировать клиента" data-en="Edit Client">Редактировать клиента</title>
@@ -13,14 +13,12 @@
     <div class="form-container">
         <h2 data-ru="Редактировать клиента" data-en="Edit Client">Редактировать клиента</h2>
 
-        <div class="alert alert-error" th:if="${error}" th:text="${error}"
-             style="padding:12px; border:1px solid #e74c3c; background:#fdeaea; margin-bottom:16px;"></div>
+        <div class="alert alert-error alert-form" th:if="${error}" th:text="${error}"></div>
 
         <form th:action="@{/admin/clients/{id}/edit(id=${client.id})}" method="post">
             <div class="form-group">
                 <label data-ru="Номер клиента" data-en="Client Number">Номер клиента</label>
-                <input type="text" th:value="${client.clientNumber}" readonly
-                       style="color:#00b894; font-weight:700;">
+                <input class="text-accent fw-bold" type="text" th:value="${client.clientNumber}" readonly>
             </div>
 
             <div class="form-group">
@@ -64,7 +62,7 @@
                     data-ru="Сохранить изменения" data-en="Save Changes">Сохранить изменения</button>
         </form>
 
-        <a href="/client/search" class="btn-back" style="display:block; width:fit-content; margin:15px auto 0;"
+        <a href="/client/search" class="btn-back d-block w-fit mx-auto-mt-15"
            data-ru="← Назад к клиентам" data-en="← Back to Clients">← Назад к клиентам</a>
     </div>
 </div>

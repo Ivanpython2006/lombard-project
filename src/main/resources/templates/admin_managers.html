@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Менеджеры" data-en="Managers">Менеджеры</title>
@@ -10,8 +10,8 @@
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
-        <h2 style="margin-bottom:0;" data-ru="Менеджеры" data-en="Managers">Менеджеры</h2>
+    <div class="page-toolbar">
+        <h2 class="mb-0" data-ru="Менеджеры" data-en="Managers">Менеджеры</h2>
         <a href="/admin/users" class="btn"
            data-ru="← К работникам" data-en="← Back to Employees">← К работникам</a>
     </div>
@@ -32,8 +32,7 @@
                 <td th:text="${m.username}"></td>
                 <td th:text="${m.role}"></td>
                 <td>
-                    <a th:href="@{/admin/managers/{id}(id=${m.id})}" class="btn"
-                       style="padding: 6px 14px; font-size: 12px;"
+                    <a th:href="@{/admin/managers/{id}(id=${m.id})}" class="btn btn-sm"
                        data-ru="Открыть профиль" data-en="Open Profile">Открыть профиль</a>
                 </td>
             </tr>

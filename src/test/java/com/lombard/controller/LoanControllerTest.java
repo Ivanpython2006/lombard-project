@@ -15,6 +15,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -214,5 +215,82 @@ class LoanControllerTest extends ControllerTestBase {
                         .param("approvedAmount", "800"))
                 .andExpect(status().is3xxRedirection());
         verify(loanService, atLeastOnce()).save(l);
+    }
+
+    // одобрить можно только новую заявку: закрытый заем не должен снова стать «Ожидает подтверждения»
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void approve_closedLoan_notChanged() throws Exception {
+        Loan l = new Loan(); l.setId(1L); l.setStatus("Закрыт");
+        when(loanService.findById(1L)).thenReturn(l);
+
+        mvc.perform(post("/loans/1/approve").with(csrf())
+                        .param("rate", "10").param("estimatedPrice", "1000").param("approvedAmount", "800"))
+                .andExpect(flash().attributeExists("error"));
+        mvc.perform(get("/loans/1/approve")).andExpect(flash().attributeExists("error"));
+
+        verify(loanService, never()).save(any());
+        assertEquals("Закрыт", l.getStatus());
+    }
+
+    // ломбард не дает больше, чем стоит вещь
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void approve_amountAboveEstimate_notSaved() throws Exception {
+        Loan l = new Loan(); l.setId(1L); l.setStatus("В ожидании"); l.setAmount(new BigDecimal("5000"));
+        when(loanService.findById(1L)).thenReturn(l);
+
+        mvc.perform(post("/loans/1/approve").with(csrf())
+                        .param("rate", "10").param("estimatedPrice", "1000").param("approvedAmount", "2000"))
+                .andExpect(redirectedUrl("/loans/1/approve"))
+                .andExpect(flash().attributeExists("error"));
+
+        verify(loanService, never()).save(any());
+    }
+
+    // запрошенная клиентом сумма остается, одобренная пишется отдельно
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void approve_validForm_keepsRequestedAmount() throws Exception {
+        Loan l = new Loan(); l.setId(1L); l.setStatus("В ожидании"); l.setAmount(new BigDecimal("1000"));
+        when(loanService.findById(1L)).thenReturn(l);
+
+        mvc.perform(post("/loans/1/approve").with(csrf())
+                        .param("rate", "10").param("estimatedPrice", "1500").param("approvedAmount", "800"))
+                .andExpect(flash().attributeExists("success"));
+
+        assertEquals(new BigDecimal("1000"), l.getAmount());
+        assertEquals(0, new BigDecimal("800").compareTo(l.getAgreedAmount()));
+        assertEquals("Ожидает подтверждения", l.getStatus());
+    }
+
+    // продлить можно только выданный или просроченный заем и на 1-12 месяцев
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void extend_closedLoanOrBadMonths_notExtended() throws Exception {
+        Loan closed = new Loan(); closed.setId(1L); closed.setStatus("Закрыт");
+        Loan issued = new Loan(); issued.setId(2L); issued.setStatus("Выдан");
+        when(loanService.findById(1L)).thenReturn(closed);
+        when(loanService.findById(2L)).thenReturn(issued);
+
+        mvc.perform(post("/loans/1/extend").with(csrf()).param("months", "1"))
+                .andExpect(flash().attributeExists("error"));
+        mvc.perform(post("/loans/2/extend").with(csrf()).param("months", "-3"))
+                .andExpect(flash().attributeExists("error"));
+
+        verify(loanService, never()).extendLoan(any(), anyInt());
+    }
+
+    // выданный заем удалить нельзя - пропадет история долга
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void delete_issuedLoan_notDeleted() throws Exception {
+        Loan l = new Loan(); l.setId(1L); l.setStatus("Выдан");
+        when(loanService.findById(1L)).thenReturn(l);
+
+        mvc.perform(post("/loans/1/delete").with(csrf()))
+                .andExpect(flash().attributeExists("error"));
+
+        verify(loanService, never()).delete(any());
     }
 }

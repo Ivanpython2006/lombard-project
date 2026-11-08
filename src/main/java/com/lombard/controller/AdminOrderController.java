@@ -129,8 +129,13 @@ public class AdminOrderController {
         }
 
         String oldStatus = order.getStatus();
-        order.setStatus(status);
-        orderService.save(order);
+        try {
+            // переходы статусов, возврат денег и товаров при отмене - в сервисе
+            order = orderService.changeStatus(id, status);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/orders/" + id;
+        }
 
         if (order.getClient() != null) {
             String eventType;

@@ -74,6 +74,11 @@ class LoanTest {
         assertEquals("Последний день", issued(0).getTimerLabel());
         assertEquals("Остался 1 день", issued(1).getTimerLabel());
         assertTrue(issued(2).getTimerLabel().startsWith("Осталось 2"));
+        assertEquals("2 days left", issued(2).getTimerLabelEn());
+        assertEquals("Last day", issued(0).getTimerLabelEn());
+        assertEquals("1 day left", issued(1).getTimerLabelEn());
+        assertEquals("Overdue by 5 days", issued(-5).getTimerLabelEn());
+        assertEquals("Overdue by 1 day", issued(-1).getTimerLabelEn());
         assertTrue(issued(-5).getTimerLabel().startsWith("Просрочено на 5"));
     }
 
@@ -83,6 +88,7 @@ class LoanTest {
         l.setDueDate(null);
 
         assertEquals("-", l.getTimerLabel());
+        assertEquals("-", l.getTimerLabelEn());
     }
 
     @Test

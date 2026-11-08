@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -38,11 +39,12 @@ class AdminOrderControllerTest extends ControllerTestBase {
         Client c = new Client(); c.setId(1L);
         o.setClient(c);
         when(orderService.findById(1L)).thenReturn(o);
+        when(orderService.changeStatus(1L, "Собран")).thenReturn(o);
 
         mvc.perform(post("/admin/orders/1/status").with(csrf()).param("status", "Собран"))
                 .andExpect(status().is3xxRedirection());
 
-        verify(orderService).save(o);
+        verify(orderService).changeStatus(1L, "Собран");
         verify(notificationService).notify(eq(c), eq("ORDER_ASSEMBLED"), any(), any(), any(), any());
     }
 
@@ -104,16 +106,33 @@ class AdminOrderControllerTest extends ControllerTestBase {
                 .param("sort", "number").param("query", "Иван")).andExpect(status().isOk());
     }
 
-    // Собран Доставлен Отменен - у каждого свое уведомление
+    // Собран Доставлен Отменён - у каждого свое уведомление
     @Test
     @WithMockUser(roles = "ADMIN")
     void changeStatus_eachStatus_redirects() throws Exception {
         com.lombard.model.Order o = new com.lombard.model.Order(); o.setId(1L); o.setClient(new Client());
         when(orderService.findById(1L)).thenReturn(o);
+        when(orderService.changeStatus(eq(1L), anyString())).thenReturn(o);
 
         mvc.perform(post("/admin/orders/1/status").with(csrf()).param("status", "Собран")).andExpect(status().is3xxRedirection());
         mvc.perform(post("/admin/orders/1/status").with(csrf()).param("status", "Доставлен")).andExpect(status().is3xxRedirection());
         mvc.perform(post("/admin/orders/1/status").with(csrf()).param("status", "Отменён")).andExpect(status().is3xxRedirection());
+        verify(notificationService).notify(any(), eq("ORDER_CANCELLED"), any(), any(), any(), any());
+    }
+
+    // недопустимый переход (например, доставленный заказ отменить) - сервис бросает исключение, показываю ошибку
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void changeStatus_forbiddenTransition_showsError() throws Exception {
+        Order o = new Order(); o.setId(1L); o.setStatus("Доставлен");
+        when(orderService.findById(1L)).thenReturn(o);
+        when(orderService.changeStatus(1L, "Отменён"))
+                .thenThrow(new IllegalStateException("Нельзя перевести заказ"));
+
+        mvc.perform(post("/admin/orders/1/status").with(csrf()).param("status", "Отменён"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("error"));
+        verify(notificationService, never()).notify(any(), any(), any(), any(), any(), any());
     }
 
     @Test

@@ -1,0 +1,9 @@
+/* Точка входа для основных стилей.
+Все файлы подключаются в один слой "app" (cascade layer). Внутри слоя всё работает как обычно:
+побеждает более точный селектор (при равенстве что ниже)
+Файлы utilities.css и theme.css подключаются отдельно вне слоя поэтому всегда перекрывают стили из слоя app - без !important. */
+@import url("base.css") layer(app);
+@import url("layout.css") layer(app);
+@import url("components.css") layer(app);
+@import url("pages.css") layer(app);
+@import url("views.css") layer(app);

@@ -81,7 +81,7 @@ public class IntakeController {
         return "intake";
     }
 
-    // НОВЫЙ МЕТОД ДЛЯ ЭКСПОРТА В CSV
+    // метод для экспорта в csv
     @GetMapping("/export")
     public void exportIntake(HttpServletResponse response,
                              Authentication auth) throws IOException {

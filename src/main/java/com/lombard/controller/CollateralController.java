@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/collaterals")
@@ -230,6 +231,13 @@ public class CollateralController {
         Collateral collateral = collateralService.findById(id);
         if (collateral == null) {
             ra.addFlashAttribute("error", "Залог не найден");
+            return "redirect:/collaterals";
+        }
+        // залог по займу в работе удалять нельзя: заем останется без обеспечения
+        if (collateral.getLoan() != null
+                && !Set.of("В ожидании", "Отклонен", "Отменена", "Закрыт").contains(collateral.getLoan().getStatus())) {
+            ra.addFlashAttribute("error", "Нельзя удалить залог: заем в статусе «"
+                    + collateral.getLoan().getStatus() + "»");
             return "redirect:/collaterals";
         }
         collateralService.delete(id);

@@ -1,75 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Мои займы" data-en="My Loans">Мои займы</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .loan-number-link {
-            display: inline-block; padding: 4px 10px;
-            font-size: 13px; font-weight: 800; color: #00b894;
-            text-decoration: none; border: 1px solid #00b894;
-            background: #e6faf5; letter-spacing: 0.3px;
-            transition: all 0.15s ease;
-        }
-        .loan-number-link:hover { background: #00b894; color: #fff; }
-        body.theme-dark .loan-number-link { background: #0a2e27; color: #00d4a8; border-color: #00d4a8; }
-        body.theme-dark .loan-number-link:hover { background: #00d4a8; color: #111; }
-
-        .item-cell {
-            display: flex; align-items: baseline; justify-content: center;
-            gap: 6px; flex-wrap: nowrap;
-        }
-        .item-cell .item-name-static { color: #000; font-size: 14px; font-weight: 400; white-space: nowrap; line-height: 1; max-width: 180px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle; }
-        .item-cell .item-number-static { font-size: 13px; color: #00b894; font-weight: 400; letter-spacing: 0.3px; white-space: nowrap; line-height: 1; }
-        body.theme-dark .item-cell .item-name-static { color: #e0e0e0; }
-        body.theme-dark .item-cell .item-number-static { color: #00d4a8; }
-
-        .due-cell { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .due-date { font-size: 13px; color: #000; }
-        body.theme-dark .due-date { color: #e0e0e0; }
-
-        .timer-badge {
-            display: inline-block; padding: 4px 10px;
-            font-size: 11px; font-weight: 700; border: 1px solid; white-space: nowrap;
-        }
-        .timer-badge.timer-success { color: #10b981; border-color: #10b981; background: #ecfdf5; }
-        .timer-badge.timer-warning { color: #f59e0b; border-color: #f59e0b; background: #fffbeb; }
-        .timer-badge.timer-danger  { color: #e74c3c; border-color: #e74c3c; background: #fef2f2; }
-        body.theme-dark .timer-badge.timer-success { background: #052e22; color: #34d399; border-color: #34d399; }
-        body.theme-dark .timer-badge.timer-warning { background: #2e2005; color: #fbbf24; border-color: #fbbf24; }
-        body.theme-dark .timer-badge.timer-danger  { background: #2e0505; color: #ff6b6b; border-color: #ff6b6b; }
-
-        .loans-top-bar { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; margin-bottom: 25px; }
-        .loans-top-bar h2 { margin: 0; }
-
-        .loans-filters {
-            display: flex; gap: 0; border: 1px solid #e0e0e0;
-            align-items: stretch; background: #fff;
-            width: 100%; max-width: 900px;
-        }
-        .loans-filters input[type="text"] {
-            padding: 10px 14px; font-size: 13px; border: none; outline: none;
-            background: #fff; color: #000; font-family: inherit;
-            min-width: 260px; flex: 1;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-        .loans-filters input[type="text"]::placeholder { color: #999; text-overflow: ellipsis; }
-        .loans-filters select {
-            padding: 10px 14px; font-size: 13px; border: none; outline: none;
-            background: #fff; color: #000; font-family: inherit; cursor: pointer;
-        }
-        .loans-filters .filter-divider { width: 1px; background: #e0e0e0; align-self: stretch; }
-        body.theme-dark .loans-filters { border-color: #2a2a2a; background: #1e1e1e; }
-        body.theme-dark .loans-filters input[type="text"] { background: #1e1e1e; color: #e0e0e0; }
-        body.theme-dark .loans-filters input[type="text"]::placeholder { color: #666; }
-        body.theme-dark .loans-filters select { background: #1e1e1e; color: #e0e0e0; }
-        body.theme-dark .loans-filters .filter-divider { background: #2a2a2a; }
-    </style>
 </head>
-<body>
+<body class="page-client-loans">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
@@ -157,30 +93,27 @@
                         <span th:if="${loan.status == 'Выдан' or loan.status == 'Просрочен'}"
                               class="timer-badge"
                               th:classappend="${loan.timerClass}"
-                              th:text="${loan.timerLabel}"></span>
+                              th:text="${loan.timerLabel}"
+                              th:attr="data-ru=${loan.timerLabel},data-en=${loan.timerLabelEn}"></span>
                     </div>
                 </td>
                 <td>
-                    <form th:action="@{/client/loans/{id}/repay(id=${loan.id})}" method="post"
+                    <form class="d-inline m-0" th:action="@{/client/loans/{id}/repay(id=${loan.id})}" method="post"
                           th:if="${loan.status == 'Выдан' or loan.status == 'Просрочен'}"
-                          onsubmit="return openConfirmForm(this, 'Погасить заем? С баланса спишется вся сумма к возврату.', 'Погасить')"
-                          style="display:inline; margin:0;">
-                        <button type="submit" class="btn-green" style="padding:6px 14px; font-size:12px;"
+                          onsubmit="return openConfirmForm(this, 'Погасить заем? С баланса спишется вся сумма к возврату.', 'Погасить')">
+                        <button type="submit" class="btn-green btn-sm"
                                 data-ru="Погасить" data-en="Repay">Погасить</button>
                     </form>
 
-                    <form th:if="${loan.status == 'В ожидании'}"
+                    <form class="d-inline m-0" th:if="${loan.status == 'В ожидании'}"
                           th:action="@{/client/loans/{id}/cancel(id=${loan.id})}"
                           method="post"
-                          onsubmit="return openConfirmForm(this, 'Отменить заявку?', 'Отменить')"
-                          style="display:inline; margin:0;">
-                        <button type="submit" class="btn-red"
-                                style="padding:6px 14px; font-size:12px;"
+                          onsubmit="return openConfirmForm(this, 'Отменить заявку?', 'Отменить')">
+                        <button type="submit" class="btn-red btn-sm"
                                 data-ru="Отменить" data-en="Cancel">Отменить</button>
                     </form>
 
-                    <span th:if="${loan.status != 'Выдан' and loan.status != 'Просрочен' and loan.status != 'В ожидании'}"
-                          style="color:#ccc;">-</span>
+                    <span class="text-faint" th:if="${loan.status != 'Выдан' and loan.status != 'Просрочен' and loan.status != 'В ожидании'}">-</span>
                 </td>
             </tr>
             </tbody>

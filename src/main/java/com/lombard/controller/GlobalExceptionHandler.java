@@ -18,8 +18,8 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // 404 - если не нашел страницу или статический ресурс,
-    // а также адрес вида /loans/abc, где вместо номера записи стоит текст
+    // 404 если не нашел страницу или статический ресурс
+    // а также адрес вида /loans/abc где вместо номера записи стоит текст
     @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class,
             MethodArgumentTypeMismatchException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
         return "error/404";
     }
 
-    // нет прав (сработал @PreAuthorize) - показываю страницу 403, а не "внутреннюю ошибку"
+    // нет прав (сработал @PreAuthorize) - показываю страницу 403
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public String handleAccessDenied(AccessDeniedException ex) {
@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
         return "error";
     }
 
-    // неверные аргументы (валидация, парсинг)
+    // неверные аргументы (валидация парсинг)
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleIllegalArgument(IllegalArgumentException ex, Model model) {

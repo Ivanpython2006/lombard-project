@@ -5,6 +5,7 @@ import com.lombard.model.Client;
 import com.lombard.model.Collateral;
 import com.lombard.model.Loan;
 import com.lombard.model.Order;
+import com.lombard.model.OrderItem;
 import com.lombard.repository.LoanRepository;
 import com.lombard.repository.OrderRepository;
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 //Тесты сервиса заказов: поиск заказов и оформление заказа из корзины.
@@ -35,13 +37,16 @@ class OrderServiceTest {
     @Mock
     private NumberSequenceService numberSequenceService;
 
+    @Mock
+    private AccountService accountService;
+
     private OrderService orderService;
 
     private Client client;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(orderRepository, loanRepository, numberSequenceService);
+        orderService = new OrderService(orderRepository, loanRepository, numberSequenceService, accountService);
         client = new Client();
         client.setId(1L);
     }
@@ -105,7 +110,7 @@ class OrderServiceTest {
     void createOrder_loanNotOnSale_throwsException() {
         Loan loan = loanOnSale(2L);
         loan.setStatus("В ожидании");
-        when(loanRepository.findById(2L)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(2L)).thenReturn(Optional.of(loan));
 
         assertThrows(IllegalStateException.class, () -> checkout(List.of(new CartItem(client, loan)), "PICKUP"));
     }
@@ -114,7 +119,7 @@ class OrderServiceTest {
     @Test
     void createOrder_pickup_marksLoanBought() {
         Loan loan = loanOnSale(2L);
-        when(loanRepository.findById(2L)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(2L)).thenReturn(Optional.of(loan));
         when(numberSequenceService.nextNumber("O", "O")).thenReturn("O1");
         when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -131,7 +136,7 @@ class OrderServiceTest {
     @Test
     void createOrder_delivery_savesAddress() {
         Loan loan = loanOnSale(3L);
-        when(loanRepository.findById(3L)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(3L)).thenReturn(Optional.of(loan));
         when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         Order order = checkout(List.of(new CartItem(client, loan)), "DELIVERY");
@@ -145,11 +150,42 @@ class OrderServiceTest {
     void createOrder_loanWithoutCollateral_usesDefaultName() {
         Loan loan = loanOnSale(4L);
         loan.setCollaterals(new ArrayList<>());
-        when(loanRepository.findById(4L)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(4L)).thenReturn(Optional.of(loan));
         when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         Order order = checkout(List.of(new CartItem(client, loan)), "PICKUP");
 
         assertEquals(1, order.getItems().size());
+    }
+
+    // отмена оплаченного заказа: деньги возвращаются на счет, вещь снова в магазине
+    @Test
+    void changeStatus_cancelPaidOrder_refundsAndReturnsItems() {
+        Loan loan = loanOnSale(5L);
+        loan.setStatus("Куплен");
+        Order order = new Order();
+        order.setId(1L); order.setStatus("Оплачен"); order.setClient(client);
+        order.setOrderNumber("O1"); order.setTotalAmount(new BigDecimal("1000"));
+        order.getItems().add(new OrderItem(order, loan, "Телефон", new BigDecimal("1000")));
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.save(order)).thenReturn(order);
+
+        orderService.changeStatus(1L, "Отменён");
+
+        verify(accountService).deposit(eq(1L), eq(new BigDecimal("1000")), any());
+        assertEquals("На продаже", loan.getStatus());
+        assertEquals("Отменён", order.getStatus());
+    }
+
+    // доставленный заказ уже нельзя ни отменить, ни вернуть в «Оплачен»
+    @Test
+    void changeStatus_deliveredOrder_throwsException() {
+        Order order = new Order();
+        order.setId(1L); order.setStatus("Доставлен");
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+
+        assertThrows(IllegalStateException.class, () -> orderService.changeStatus(1L, "Отменён"));
+        verify(accountService, never()).deposit(any(), any(), any());
+        assertEquals("Доставлен", order.getStatus());
     }
 }

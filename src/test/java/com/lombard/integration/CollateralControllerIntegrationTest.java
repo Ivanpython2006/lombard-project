@@ -159,6 +159,14 @@ class CollateralControllerIntegrationTest extends IntegrationTestBase {
         @WithMockUser(username = "manager", roles = {"MANAGER"})
         void delete_asManager_removedFromDatabase() throws Exception {
             Loan l = collateral.getLoan();
+            // пока заем в работе, залог удалить нельзя
+            l.setStatus("Выдан");
+            loanRepository.save(l);
+            mvc.perform(post("/collaterals/" + collateral.getId() + "/delete").with(csrf()))
+                    .andExpect(flash().attributeExists("error"));
+
+            // у закрытого займа - можно
+            l.setStatus("Закрыт");
             l.getCollaterals().remove(collateral);
             loanRepository.save(l);
 

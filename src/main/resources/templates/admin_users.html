@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Пользователи" data-en="Users">Пользователи</title>
@@ -10,9 +10,9 @@
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
-        <h2 style="margin-bottom:0;" data-ru="Управление пользователями" data-en="User Management">Управление пользователями</h2>
-        <div style="display:flex; gap:12px; align-items:stretch; flex-wrap:wrap;">
+    <div class="page-toolbar">
+        <h2 class="mb-0" data-ru="Управление пользователями" data-en="User Management">Управление пользователями</h2>
+        <div class="toolbar-actions">
             <a href="/admin/users/new" class="btn-green" data-ru="+ Создать работника" data-en="+ Create Employee">+ Создать работника</a>
             <a href="/admin/users/export" class="btn" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</a>
         </div>
@@ -53,7 +53,7 @@
             </thead>
             <tbody>
             <tr th:each="user : ${users}" th:with="isMe=${user.username == #authentication.getName()}">
-                <td><b th:text="${user.userNumber}" style="color:#00b894;"></b></td>
+                <td><b class="text-accent" th:text="${user.userNumber}"></b></td>
                 <td>
                     <button th:if="${user.role == 'MANAGER'}"
                             type="button"
@@ -62,13 +62,12 @@
                             onclick="openManager(this)"
                             th:text="${user.username}"></button>
                     <span th:unless="${user.role == 'MANAGER'}" th:text="${user.username}"></span>
-                    <span th:if="${isMe}" style="color:#00b894; font-size:11px; margin-left:6px; font-weight:700;"
+                    <span class="label-you" th:if="${isMe}"
                           data-ru="(это вы)" data-en="(you)">(это вы)</span>
                 </td>
                 <td th:text="${user.role}"></td>
                 <td>
-                    <form th:if="${!isMe}"
-                          style="display:flex; gap:8px; justify-content:center;"
+                    <form class="d-flex gap-8 justify-center" th:if="${!isMe}"
                           th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post">
                         <select name="role" onchange="this.form.submit()">
                             <option value="ADMIN" th:selected="${user.role == 'ADMIN'}" data-ru="Администратор" data-en="Administrator">Администратор</option>
@@ -76,19 +75,17 @@
                             <option value="CLIENT" th:selected="${user.role == 'CLIENT'}" data-ru="Клиент" data-en="Client">Клиент</option>
                         </select>
                     </form>
-                    <span th:if="${isMe}" style="color:#ccc; font-size:12px;"
+                    <span class="text-faint fs-12" th:if="${isMe}"
                           data-ru="-" data-en="-">-</span>
                 </td>
                 <td>
-                    <form th:if="${!isMe}"
+                    <form class="d-inline" th:if="${!isMe}"
                           th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post"
-                          style="display:inline;"
                           onsubmit="return openConfirmForm(this, 'Удалить пользователя?', 'Удалить')">
-                        <button type="submit" class="btn-red"
-                                style="padding:6px 14px; font-size:12px;"
+                        <button type="submit" class="btn-red btn-sm"
                                 data-ru="Удалить" data-en="Delete">Удалить</button>
                     </form>
-                    <span th:if="${isMe}" style="color:#ccc;"
+                    <span class="text-faint" th:if="${isMe}"
                           data-ru="-" data-en="-">-</span>
                 </td>
             </tr>

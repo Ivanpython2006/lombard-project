@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <title data-ru="Статистика" data-en="Statistics">Статистика</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- сначала Chart.js из проекта (работает без интернета), если файла нет - берется из интернета -->
+  <script th:src="@{/js/chart.umd.min.js}"></script>
+  <script>if (!window.Chart) document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>');</script>
   <th:block th:replace="~{fragments/head :: styles}"></th:block>
 </head>
 <body>

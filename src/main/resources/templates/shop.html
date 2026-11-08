@@ -1,40 +1,27 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Магазин" data-en="Shop">Магазин</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .card .photo-slider-inner,
-        .card .photo-slider-empty {
-            height: 220px !important;
-            margin-bottom: 12px;
-        }
-        .card .photo-slider-btn { width: 34px; height: 34px; font-size: 22px; }
-        .card .photo-slider-prev { left: 6px; }
-        .card .photo-slider-next { right: 6px; }
-        .card .photo-slider-counter { font-size: 11px; padding: 3px 9px; bottom: 8px; right: 8px; }
-        .card .photo-slider-zoomhint { display: none; }
-    </style>
 </head>
-<body>
+<body class="page-shop">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:25px; gap:20px; flex-wrap:wrap;">
+    <div class="shop-header">
         <div>
-            <h2 style="margin-bottom:8px;" data-ru="Магазин" data-en="Shop">Магазин</h2>
-            <p class="subtitle" style="margin-bottom:0;"
+            <h2 class="mb-8" data-ru="Магазин" data-en="Shop">Магазин</h2>
+            <p class="subtitle mb-0"
                data-ru="Вещи из ломбарда, выставленные на продажу"
                data-en="Items from the pawnshop available for sale">Вещи из ломбарда, выставленные на продажу</p>
         </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="d-flex gap-10 flex-wrap">
             <a th:if="${isAdminOrManager}" href="/shop/manage" class="btn"
                data-ru="Управление магазином" data-en="Manage Shop">Управление магазином</a>
 
-            <a th:if="${isClient}" href="/client/cart" class="btn"
-               style="border-color:#00b894; color:#00b894;">
+            <a th:if="${isClient}" href="/client/cart" class="btn border-accent text-accent">
                 <span data-ru="Корзина" data-en="Cart">Корзина</span>
                 <span th:if="${cartCount > 0}" th:text="'(' + ${cartCount} + ')'"></span>
             </a>
@@ -43,10 +30,9 @@
 
     <div class="cards" th:if="${not #lists.isEmpty(loans)}">
         <div class="card" th:each="loan : ${loans}">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
-                <span th:if="${not #lists.isEmpty(loan.collaterals)}"
-                      th:text="${loan.collaterals[0].itemNumber}"
-                      style="background:#00b894; color:#fff; padding:4px 10px; font-size:12px; font-weight:700; letter-spacing:0.5px;">
+            <div class="card-title-row">
+                <span class="badge-accent" th:if="${not #lists.isEmpty(loan.collaterals)}"
+                      th:text="${loan.collaterals[0].itemNumber}">
                 </span>
                 <div th:if="${cartLoanIds != null and cartLoanIds.contains(loan.id)}">
                     <span class="card-cart-badge" data-ru="В корзине" data-en="In Cart">В корзине</span>
@@ -56,8 +42,7 @@
             <div th:if="${not #lists.isEmpty(loan.collaterals)}"
                  th:replace="~{fragments/photo-slider :: slider(${loan.collaterals[0].photoUrls}, ${loan.collaterals[0].name}, 220)}"></div>
             <div th:if="${#lists.isEmpty(loan.collaterals)}"
-                 class="photo-slider-empty"
-                 style="height:220px; margin-bottom:12px;"
+                 class="photo-slider-empty h-220 mb-12"
                  data-ru="Нет фото" data-en="No photo">Нет фото</div>
 
             <div class="card-name"
@@ -75,15 +60,13 @@
             <th:block th:if="${isClient}">
                 <a th:if="${cartLoanIds != null and cartLoanIds.contains(loan.id)}"
                    href="/client/cart"
-                   class="btn-cart btn-in-cart"
-                   style="width:100%; margin-top: auto;"
+                   class="btn-cart btn-in-cart w-100 mt-auto"
                    data-ru="В корзине перейти" data-en="In Cart Open">
                     В корзине перейти
                 </a>
-                <form th:unless="${cartLoanIds != null and cartLoanIds.contains(loan.id)}"
-                      th:action="@{/shop/{id}/add-to-cart(id=${loan.id})}" method="post"
-                      style="width:100%; margin-top: auto;">
-                    <button type="submit" class="btn-cart" style="width:100%;"
+                <form class="w-100 mt-auto" th:unless="${cartLoanIds != null and cartLoanIds.contains(loan.id)}"
+                      th:action="@{/shop/{id}/add-to-cart(id=${loan.id})}" method="post">
+                    <button type="submit" class="btn-cart w-100"
                             data-ru="В корзину" data-en="Add to Cart">
                         В корзину
                     </button>
@@ -92,8 +75,7 @@
 
             <a th:if="${isAdminOrManager}"
                href="/shop/manage"
-               class="btn-cart btn-manage"
-               style="width:100%; margin-top: auto;"
+               class="btn-cart btn-manage w-100 mt-auto"
                data-ru="Управление магазином" data-en="Manage Shop">
                 Управление магазином
             </a>

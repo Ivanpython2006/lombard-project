@@ -28,13 +28,13 @@ public class ProfileController {
                                  Authentication auth,
                                  RedirectAttributes ra) {
 
-        // Проверка, что новый пароль не пустой
+        // Проверка что новый пароль не пустой
         if (newPassword == null || newPassword.length() < 6) {
             ra.addFlashAttribute("error", "Пароль должен быть не короче 6 символов");
             return "redirect:/profile/password";
         }
 
-        // Проверка, что новый и подтверждение совпадают
+        // Проверка что новый и подтверждение совпадают
         if (!newPassword.equals(confirmPassword)) {
             ra.addFlashAttribute("error", "Новый пароль и подтверждение не совпадают");
             return "redirect:/profile/password";
@@ -46,7 +46,7 @@ public class ProfileController {
             return "redirect:/profile/password";
         }
 
-        // Сохраняем новый пароль
+        // Сохраняю новый пароль
         userService.changePassword(auth.getName(), newPassword);
         ra.addFlashAttribute("success", "Пароль успешно изменён");
         return "redirect:/profile/password";

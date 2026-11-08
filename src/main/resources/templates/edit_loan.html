@@ -1,43 +1,24 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Редактировать заем" data-en="Edit Loan">Редактировать заем</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .file-upload-wrap { position: relative; display: block; }
-        .file-upload-input { position: absolute; left: -9999px; opacity: 0; }
-        .file-upload-btn {
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 12px 24px; font-size: 13px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            color: #00b894; background: #fff; border: 2px dashed #00b894;
-            cursor: pointer; font-family: inherit; transition: all 0.15s ease;
-        }
-        .file-upload-btn:hover { background: #00b894; color: #fff; border-style: solid; }
-        .file-upload-name { display: block; margin-top: 8px; font-size: 12px; color: #666; font-style: italic; }
-        body.theme-dark .file-upload-btn { background: #1e1e1e; color: #00d4a8; border-color: #00d4a8; }
-        body.theme-dark .file-upload-btn:hover { background: #00d4a8; color: #111; }
-        body.theme-dark .file-upload-name { color: #999; }
-    </style>
 </head>
-<body>
+<body class="page-edit-loan">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar-center">
-    <div class="form-container" style="max-width:600px;">
+    <div class="form-container mw-600">
         <h2>
-            <span data-ru="Редактировать заем " data-en="Edit Loan ">Редактировать заем </span><b th:text="${loan.loanNumber}" style="color:#00b894;"></b>
+            <span data-ru="Редактировать заем " data-en="Edit Loan ">Редактировать заем </span><b class="text-accent" th:text="${loan.loanNumber}"></b>
         </h2>
 
-        <div class="alert alert-error" th:if="${error}" th:text="${error}"
-             style="padding:12px; border:1px solid #e74c3c; background:#fdeaea; margin-bottom:16px;"></div>
+        <div class="alert alert-error alert-form" th:if="${error}" th:text="${error}"></div>
 
-        <div th:if="${loan.collaterals != null and not #lists.isEmpty(loan.collaterals) and not #lists.isEmpty(loan.collaterals[0].photoUrls)}"
-             style="margin-bottom:24px;">
-            <h3 data-ru="Фото вещи" data-en="Item Photos"
-                style="font-size:16px; font-weight:700; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #eee;">
+        <div class="mb-24" th:if="${loan.collaterals != null and not #lists.isEmpty(loan.collaterals) and not #lists.isEmpty(loan.collaterals[0].photoUrls)}">
+            <h3 class="section-title" data-ru="Фото вещи" data-en="Item Photos">
                 Фото вещи
             </h3>
             <div class="photo-grid">
@@ -55,14 +36,13 @@
         </div>
 
         <div th:if="${loan.collaterals != null and not #lists.isEmpty(loan.collaterals) and #lists.isEmpty(loan.collaterals[0].photoUrls)}"
-             class="hint"
-             style="padding:14px; background:#f8f9fa; border-left:3px solid #f59e0b; margin-bottom:20px;"
+             class="hint hint-warning"
              data-ru="Фото пока нет." data-en="No photos yet.">
             Фото пока нет.
         </div>
 
         <div th:if="${loan.collaterals == null or #lists.isEmpty(loan.collaterals)}"
-             class="hint" style="padding:16px; background:#f8f9fa; border-left:3px solid #f59e0b; margin-bottom:20px;">
+             class="hint hint-warning-lg">
             <span data-ru="У этого займа нет привязанной вещи (коллатерала). Фото добавить нельзя."
                   data-en="This loan has no linked item (collateral). Photos cannot be added.">
                 У этого займа нет привязанной вещи (коллатерала). Фото добавить нельзя.
@@ -74,14 +54,13 @@
 
             <div class="form-group">
                 <label data-ru="Номер займа" data-en="Loan Number">Номер займа</label>
-                <input type="text" th:value="${loan.loanNumber}" readonly
-                       style="color:#00b894; font-weight:700;">
+                <input class="text-accent fw-bold" type="text" th:value="${loan.loanNumber}" readonly>
             </div>
 
             <div class="form-group">
                 <label for="amount" data-ru="Сумма займа (₽)" data-en="Loan Amount (₽)">Сумма займа (₽)</label>
                 <input type="number" id="amount" name="amount"
-                       th:value="${loan.amount}" step="0.01" min="1" required>
+                       th:value="${loan.principal}" step="0.01" min="1" required>
             </div>
 
             <div class="form-group">
@@ -125,7 +104,7 @@
             </div>
 
             <div th:if="${loan.collaterals != null and not #lists.isEmpty(loan.collaterals)}">
-                <div class="form-group" style="margin-top:12px;">
+                <div class="form-group mt-12">
                     <label for="photos" data-ru="Добавить фото" data-en="Add Photos">Добавить фото</label>
 
                     <label class="file-upload-wrap" for="photos">
@@ -140,7 +119,7 @@
                     <span class="file-upload-name" id="fileName"
                           data-ru="Файл не выбран" data-en="No file chosen">Файл не выбран</span>
 
-                    <div class="hint" style="margin-top:8px;"
+                    <div class="hint mt-8"
                          data-ru="JPG или PNG, до 5 МБ каждое. Можно выбрать сразу несколько."
                          data-en="JPG or PNG, up to 5 MB each. You can select multiple.">
                         JPG или PNG, до 5 МБ каждое. Можно выбрать сразу несколько.
@@ -152,8 +131,7 @@
                     data-ru="Сохранить изменения" data-en="Save Changes">Сохранить изменения</button>
         </form>
 
-        <a th:href="@{/loans/{id}(id=${loan.id})}" class="btn-back"
-           style="display:block; width:fit-content; margin:20px auto 0;"
+        <a th:href="@{/loans/{id}(id=${loan.id})}" class="btn-back d-block w-fit mx-auto-mt-20"
            data-ru="← Назад к займу" data-en="← Back to Loan">← Назад к займу</a>
     </div>
 </div>

@@ -95,18 +95,25 @@ public class Loan {
     public List<Collateral> getCollaterals() { return collaterals; }
     public void setCollaterals(List<Collateral> collaterals) { this.collaterals = collaterals; }
 
-    // считаю итоговую сумму: сумма + процент с округлением до копеек
+    // сумма займа: после одобрения - одобренная менеджером, до него - запрошенная клиентом
+    public BigDecimal getPrincipal() {
+        return agreedAmount != null ? agreedAmount : amount;
+    }
+
+    // считаю итоговую сумму: сумма займа + процент с округлением до копеек
     public BigDecimal getTotalToReturn() {
-        if (amount == null || rate == null) return BigDecimal.ZERO;
-        BigDecimal ratePart = amount.multiply(rate)
+        BigDecimal principal = getPrincipal();
+        if (principal == null || rate == null) return BigDecimal.ZERO;
+        BigDecimal ratePart = principal.multiply(rate)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-        return amount.add(ratePart).setScale(2, RoundingMode.HALF_UP);
+        return principal.add(ratePart).setScale(2, RoundingMode.HALF_UP);
     }
 
     // размер переплаты (только процент)
     public BigDecimal getOverpayment() {
-        if (amount == null || rate == null) return BigDecimal.ZERO;
-        return amount.multiply(rate)
+        BigDecimal principal = getPrincipal();
+        if (principal == null || rate == null) return BigDecimal.ZERO;
+        return principal.multiply(rate)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
@@ -157,6 +164,19 @@ public class Loan {
         if (days == 0) return "Последний день";
         if (days == 1) return "Остался 1 день";
         return "Осталось " + days + " " + pluralDays(days);
+    }
+
+    // то же самое для английской версии интерфейса (переключатель языка берет data-en)
+    public String getTimerLabelEn() {
+        if (dueDate == null) return "-";
+        long days = getDaysLeft();
+        if (days < 0) {
+            long overdue = -days;
+            return "Overdue by " + overdue + (overdue == 1 ? " day" : " days");
+        }
+        if (days == 0) return "Last day";
+        if (days == 1) return "1 day left";
+        return days + " days left";
     }
 
     // прогресс-бар (сколько прошло от срока)

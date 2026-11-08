@@ -1,70 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Корзина" data-en="Cart">Корзина</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .cart-card {
-            display: grid; grid-template-columns: 280px 1fr;
-            gap: 30px; border: 1px solid #e0e0e0;
-            background: #fff; padding: 30px; margin-bottom: 25px;
-        }
-        @media (max-width: 900px) { .cart-card { grid-template-columns: 1fr; } }
-
-        .cart-photo-box { width: 100%; max-width: 280px; }
-        .cart-photo-box .photo-slider-inner,
-        .cart-photo-box .photo-slider-empty { height: 280px !important; }
-
-        .cart-info { display: flex; flex-direction: column; gap: 18px; }
-        .cart-info-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .cart-info-name { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; color: #000; }
-        .cart-item-number {
-            display: inline-block; padding: 5px 12px; font-size: 13px; font-weight: 800;
-            color: #00b894; background: #e6faf5; border: 1px solid #00b894;
-            letter-spacing: 0.3px; white-space: nowrap;
-        }
-        body.theme-dark .cart-item-number { background: #0a2e27; color: #00d4a8; border-color: #00d4a8; }
-
-        .cart-info-desc { font-size: 14px; color: #666; line-height: 1.6; }
-        .cart-info-price { font-size: 32px; font-weight: 800; color: #00b894; letter-spacing: -0.5px; }
-        .cart-info-price-label {
-            font-size: 11px; font-weight: 700; color: #666;
-            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
-        }
-
-        .cart-total {
-            border: 2px solid #00b894; background: #f0fdf9;
-            padding: 20px 24px; display: flex; justify-content: space-between;
-            align-items: center; gap: 20px; flex-wrap: wrap;
-        }
-        .cart-total-label {
-            font-size: 11px; font-weight: 700; color: #666;
-            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
-        }
-        .cart-total-value { font-size: 32px; font-weight: 800; color: #00b894; letter-spacing: -1px; line-height: 1; }
-        .cart-total-balance { font-size: 13px; color: #666; }
-        .cart-total-balance b { color: #000; font-weight: 700; }
-        .cart-total-warning { font-size: 13px; color: #e74c3c; font-weight: 700; margin-top: 6px; }
-
-        .cart-form { display: flex; flex-direction: column; gap: 14px; }
-        .cart-remove-btn { align-self: flex-start; margin-top: 8px; }
-
-        body.theme-dark .cart-card { background: #1e1e1e; border-color: #2a2a2a; }
-        body.theme-dark .cart-info-name { color: #e0e0e0; }
-        body.theme-dark .cart-info-desc { color: #999; }
-        body.theme-dark .cart-total { background: #0a2e27; border-color: #00d4a8; }
-        body.theme-dark .cart-total-value { color: #00d4a8; }
-        body.theme-dark .cart-total-balance { color: #999; }
-        body.theme-dark .cart-total-balance b { color: #e0e0e0; }
-    </style>
 </head>
-<body>
+<body class="page-client-cart">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <h2 data-ru="Корзина" data-en="Cart" style="text-align:center; margin-bottom:25px;">Корзина</h2>
+    <h2 class="text-center mb-25" data-ru="Корзина" data-en="Cart">Корзина</h2>
 
     <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
     <div class="alert alert-info" th:if="${info}" th:text="${info}"></div>
@@ -76,7 +22,7 @@
              data-en="Start shopping - visit the shop and add items you like.">
             Начните покупки - загляните в магазин и добавьте понравившиеся товары.
         </div>
-        <div style="margin-top:20px;">
+        <div class="mt-20">
             <a href="/shop" class="btn-green" data-ru="Перейти в магазин" data-en="Go to Shop">Перейти в магазин</a>
         </div>
     </div>
@@ -87,8 +33,7 @@
                 <div th:if="${not #lists.isEmpty(item.loan.collaterals)}"
                      th:replace="~{fragments/photo-slider :: slider(${item.loan.collaterals[0].photoUrls}, ${item.loan.collaterals[0].name}, 280)}"></div>
                 <div th:if="${#lists.isEmpty(item.loan.collaterals)}"
-                     class="photo-slider-empty"
-                     style="height:280px;"
+                     class="photo-slider-empty h-280"
                      data-ru="Нет фото" data-en="No photo">Нет фото</div>
             </div>
 
@@ -113,17 +58,15 @@
                 </div>
 
                 <form th:action="@{/client/cart/remove/{id}(id=${item.id})}" method="post"
-                      onsubmit="return openConfirmForm(this, 'Удалить товар из корзины?', 'Да')"
-                      style="margin:0;" class="cart-remove-btn">
-                    <button type="submit" class="btn-red"
-                            style="padding: 8px 16px; font-size:12px;"
+                      onsubmit="return openConfirmForm(this, 'Удалить товар из корзины?', 'Да')" class="cart-remove-btn m-0">
+                    <button type="submit" class="btn-red p-8-16 fs-12"
                             data-ru="Удалить" data-en="Remove">Удалить</button>
                 </form>
             </div>
         </div>
 
-        <div class="cart-card" style="grid-template-columns: 1fr;">
-            <div style="display: flex; flex-direction: column; gap: 22px;">
+        <div class="cart-card grid-cols-1">
+            <div class="d-flex flex-col gap-22">
                 <div class="cart-total">
                     <div>
                         <div class="cart-total-label" data-ru="Итого к оплате" data-en="Total to Pay">Итого к оплате</div>
@@ -131,7 +74,7 @@
                             <span th:text="${#numbers.formatDecimal(total, 1, 2)}"></span> ₽
                         </div>
                     </div>
-                    <div style="text-align:right;">
+                    <div class="text-right">
                         <div class="cart-total-balance">
                             <span data-ru="Ваш баланс:" data-en="Your balance:">Ваш баланс:</span>
                             <b th:text="${#numbers.formatDecimal(account.balance, 1, 2)} + ' ₽'"></b>
@@ -145,10 +88,10 @@
                 </div>
 
                 <div>
-                    <h3 style="font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid #f0f0f0;"
+                    <h3 class="checkout-title"
                         data-ru="Оформление заказа" data-en="Checkout">Оформление заказа</h3>
 
-                    <div th:if="${!canPay}" style="margin-bottom:20px;">
+                    <div class="mb-20" th:if="${!canPay}">
                         <a href="/client/account" class="btn-green"
                            data-ru="Пополнить счет" data-en="Top Up Account">Пополнить счет</a>
                     </div>
@@ -199,11 +142,10 @@
                         <div id="pickupFields" style="display:none;">
                             <div class="form-group">
                                 <label data-ru="Адрес пункта выдачи" data-en="Pickup point address">Адрес пункта выдачи</label>
-                                <input type="text" name="pickupAddress"
-                                       value="г. Москва, ул. Финансовая, д. 15, офис 301" readonly
-                                       style="background:#f8f9fa; color:#666;">
+                                <input class="bg-light text-muted" type="text" name="pickupAddress"
+                                       value="г. Москва, ул. Финансовая, д. 15, офис 301" readonly>
                             </div>
-                            <div class="alert alert-info" style="margin-bottom:20px;"
+                            <div class="alert alert-info mb-20"
                                  data-ru="Забрать заказ можно с 09:00 до 20:00, в будние дни."
                                  data-en="You can pick up your order from 09:00 to 20:00 on weekdays.">
                                 Забрать заказ можно с 09:00 до 20:00, в будние дни.
@@ -222,8 +164,7 @@
                                       placeholder="Необязательно" maxlength="500"></textarea>
                         </div>
 
-                        <button type="submit" class="btn-green"
-                                style="width:100%; padding:18px; font-size:15px;">
+                        <button type="submit" class="btn-green w-100 p-18 fs-15">
                             <span data-ru="Подтвердить и оплатить" data-en="Confirm and Pay">Подтвердить и оплатить</span>
                             <span th:text="${#numbers.formatDecimal(total, 1, 2)}"></span> ₽
                         </button>

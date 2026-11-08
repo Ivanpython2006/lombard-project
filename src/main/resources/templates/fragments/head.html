@@ -1,13 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"></head>
 <body>
 <th:block th:fragment="styles">
-    <style>
-        html.i18n-loading body { //чтобы при переключении не было мигания (рус англ)
-            visibility: hidden !important;
-        }
-    </style>
     <script>
         (function() {
             try {
@@ -66,12 +61,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/pages.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/utilities.css">
     <link rel="stylesheet" href="/css/theme.css">
-    <th:block th:replace="~{fragments/photo-slider :: sliderStyles}"></th:block>
 </th:block>
 </body>
 </html>

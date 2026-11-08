@@ -201,24 +201,16 @@ public class LoanService {
     }
 
     @Transactional
-    public void closeLoan(Long id) {
-        Loan loan = loanRepository.findById(id).orElse(null);
-        if (loan != null) { loan.setStatus("Закрыт"); loanRepository.save(loan); }
-    }
-
-    @Transactional
-    public void sellLoan(Long id) {
-        Loan loan = loanRepository.findById(id).orElse(null);
-        if (loan != null) { loan.setStatus("На продаже"); loanRepository.save(loan); }
-    }
-
-    @Transactional
     public void extendLoan(Long id, int months) {
         Loan loan = loanRepository.findById(id).orElse(null);
         if (loan != null) {
             // если дата возврата не задана - пляшу от текущей
             LocalDate base = loan.getDueDate() != null ? loan.getDueDate() : LocalDate.now();
             loan.setDueDate(base.plusMonths(months));
+            // просроченный заем после продления снова считается выданным, если срок еще не прошел
+            if ("Просрочен".equals(loan.getStatus()) && !loan.getDueDate().isBefore(LocalDate.now())) {
+                loan.setStatus("Выдан");
+            }
             loanRepository.save(loan);
         }
     }
@@ -311,21 +303,24 @@ public class LoanService {
                         && h.getAction().toLowerCase().contains("переведен на склад"));
     }
 
+    // погашение: списание денег и закрытие займа в одной транзакции -
+    // если что-то пойдет не так, не будет ни списания, ни закрытия
     @Transactional
-    public boolean repayLoan(Long loanId, Long clientId, AccountService accountService) {
+    public Loan repayLoan(Long loanId, Long clientId, AccountService accountService) {
         Loan loan = loanRepository.findById(loanId).orElse(null);
         if (loan == null || loan.getClient() == null
-                || !loan.getClient().getId().equals(clientId)) return false;
-        if (!"Выдан".equals(loan.getStatus()) && !"Просрочен".equals(loan.getStatus())) return false;
-
-        try {
-            accountService.withdraw(clientId, loan.getTotalToReturn(),
-                    "Погашение займа " + loan.getLoanNumber());
-        } catch (RuntimeException e) { return false; }
+                || !loan.getClient().getId().equals(clientId)) {
+            throw new IllegalStateException("Заём не найден");
+        }
+        if (!"Выдан".equals(loan.getStatus()) && !"Просрочен".equals(loan.getStatus())) {
+            throw new IllegalStateException("Нельзя погасить заём в статусе «" + loan.getStatus() + "»");
+        }
+        // при нехватке денег withdraw бросит IllegalArgumentException
+        accountService.withdraw(clientId, loan.getTotalToReturn(),
+                "Погашение займа " + loan.getLoanNumber());
 
         loan.setStatus("Закрыт");
-        loanRepository.save(loan);
-        return true;
+        return loanRepository.save(loan);
     }
 
     // беру название вещи из первого залога если есть

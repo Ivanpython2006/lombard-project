@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Создать работника" data-en="Create Employee">Создать работника</title>
@@ -10,7 +10,7 @@
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar-center">
-    <div class="form-container" style="max-width:500px;">
+    <div class="form-container mw-500">
         <h2 data-ru="Создать работника" data-en="Create Employee">Создать работника</h2>
 
         <form th:action="@{/admin/users/new}" method="post">
@@ -37,9 +37,9 @@
                     data-ru="Создать" data-en="Create">Создать</button>
         </form>
 
-        <div class="error" th:if="${error}" th:text="${error}" style="text-align:center; margin-top:12px;"></div>
+        <div class="error text-center mt-12" th:if="${error}" th:text="${error}"></div>
 
-        <a href="/admin/users" class="btn-back" style="display:block; width:fit-content; margin:20px auto 0;"
+        <a href="/admin/users" class="btn-back d-block w-fit mx-auto-mt-20"
            data-ru="← Назад к пользователям" data-en="← Back to Users">← Назад к пользователям</a>
     </div>
 </div>

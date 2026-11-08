@@ -7,6 +7,7 @@ import com.lombard.service.LoanService;
 import com.lombard.service.UserService;
 import com.lombard.util.CsvExporter;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -275,11 +276,19 @@ public class AdminController {
     public String deleteUser(@PathVariable Long id,
                              Authentication auth,
                              RedirectAttributes ra) {
+        // у клиента к учетной записи привязан профиль со счетом и займами - его удаляют в разделе «Клиенты»
+        if (clientService.findByUserId(id) != null) {
+            ra.addFlashAttribute("error",
+                    "К пользователю привязан профиль клиента. Сначала удалите клиента в разделе «Клиенты»");
+            return "redirect:/admin/users";
+        }
         try {
             userService.delete(id, auth.getName());
             ra.addFlashAttribute("success", "Пользователь удалён");
         } catch (IllegalStateException e) {
             ra.addFlashAttribute("error", e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            ra.addFlashAttribute("error", "Нельзя удалить пользователя: с ним связаны другие записи");
         }
         return "redirect:/admin/users";
     }
@@ -298,12 +307,12 @@ public class AdminController {
 
         BigDecimal totalIssued = allLoans.stream()
                 .filter(l -> "Выдан".equals(l.getStatus()) || "Просрочен".equals(l.getStatus()))
-                .map(l -> l.getAmount() != null ? l.getAmount() : BigDecimal.ZERO)
+                .map(l -> l.getPrincipal() != null ? l.getPrincipal() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalClosed = allLoans.stream()
                 .filter(l -> "Закрыт".equals(l.getStatus()))
-                .map(l -> l.getAmount() != null ? l.getAmount() : BigDecimal.ZERO)
+                .map(l -> l.getPrincipal() != null ? l.getPrincipal() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalSold = allLoans.stream()

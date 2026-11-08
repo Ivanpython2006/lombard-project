@@ -1,44 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Мой профиль" data-en="My Profile">Мой профиль</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .profile-top {
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 20px; flex-wrap: wrap; margin-bottom: 25px;
-            padding-bottom: 20px; border-bottom: 2px solid #e0e0e0;
-        }
-        .profile-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
-        .profile-user-badge { display: flex; flex-direction: column; gap: 4px; text-align: right; }
-        .profile-user-label {
-            font-size: 11px; font-weight: 700; color: #666;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-        .profile-user-value { font-size: 16px; font-weight: 800; color: #00b894; }
-
-        .profile-grid {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 25px; margin-bottom: 25px;
-        }
-        @media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr; } }
-
-        .profile-card { border: 1px solid #e0e0e0; background: #fff; padding: 30px; }
-        .profile-card h3 {
-            font-size: 13px; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.5px; margin-bottom: 20px;
-            padding-bottom: 12px; border-bottom: 2px solid #00b894;
-            color: #00b894;
-        }
-        .profile-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
-
-        body.theme-dark .profile-top { border-bottom-color: #2a2a2a; }
-        body.theme-dark .profile-card { background: #1e1e1e; border-color: #2a2a2a; }
-        body.theme-dark .profile-user-label { color: #999; }
-    </style>
 </head>
-<body>
+<body class="page-client-profile">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
@@ -130,7 +97,7 @@
                            placeholder="Повторите пароль" minlength="6" autocomplete="off">
                 </div>
 
-                <div class="hint" style="margin-top: 20px; padding: 12px; background: #f8f9fa; border-left: 3px solid #00b894;">
+                <div class="hint hint-accent">
                     <span data-ru="Пароль должен содержать не менее 6 символов. Если вы не хотите менять пароль - оставьте все поля пустыми."
                           data-en="The password must contain at least 6 characters. If you don't want to change the password, leave all fields empty.">
                         Пароль должен содержать не менее 6 символов. Если вы не хотите менять пароль - оставьте все поля пустыми.
@@ -139,9 +106,8 @@
             </div>
         </div>
 
-        <div style="text-align: center; margin-top: 10px;">
-            <button type="submit" class="btn-green"
-                    style="padding: 16px 48px; font-size: 14px;"
+        <div class="text-center mt-10">
+            <button type="submit" class="btn-green p-16-48 fs-14"
                     data-ru="Сохранить изменения" data-en="Save Changes">Сохранить изменения</button>
         </div>
     </form>

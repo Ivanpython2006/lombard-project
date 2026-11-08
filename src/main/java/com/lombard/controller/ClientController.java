@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -352,6 +353,12 @@ public class ClientController {
         String itemName = loanService.getItemName(loan);
 
         if (Boolean.TRUE.equals(agree)) {
+            // срок займа отсчитывается с момента выдачи, а не с подачи заявки:
+            // при создании заявки срок сохранен как разница между датой подачи и датой возврата
+            if (loan.getCreatedDate() != null && loan.getDueDate() != null) {
+                long months = ChronoUnit.MONTHS.between(loan.getCreatedDate(), loan.getDueDate());
+                loan.setDueDate(LocalDate.now().plusMonths(Math.max(months, 1)));
+            }
             loan.setStatus("Выдан");
             loan.setClientApproved(true);
             loan.setDecisionDate(LocalDate.now());
@@ -455,15 +462,15 @@ public class ClientController {
         String itemName = loanService.getItemName(loan);
 
         try {
-            accountService.withdraw(client.getId(), toReturn, "Погашение займа " + loan.getLoanNumber());
-        } catch (RuntimeException e) {
+            loanService.repayLoan(loan.getId(), client.getId(), accountService);
+        } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("error",
                     "Недостаточно средств. Нужно " + toReturn.toPlainString() + " ₽. Пополните счёт.");
             return "redirect:/client/loans";
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/client/loans";
         }
-
-        loan.setStatus("Закрыт");
-        loanService.save(loan);
 
         notificationService.notify(client, "LOAN_REPAID", "SUCCESS",
                 loan.getLoanNumber(),

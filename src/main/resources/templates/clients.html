@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Клиенты" data-en="Clients">Клиенты</title>
@@ -10,9 +10,9 @@
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
-        <h2 style="margin-bottom:0;" data-ru="Клиенты" data-en="Clients">Клиенты</h2>
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <div class="page-toolbar">
+        <h2 class="mb-0" data-ru="Клиенты" data-en="Clients">Клиенты</h2>
+        <div class="d-flex gap-12 flex-wrap">
             <a href="/admin/clients/new" class="btn-green"
                data-ru="+ Новый клиент" data-en="+ New Client">+ Новый клиент</a>
             <a href="/client/export" class="btn" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</a>
@@ -47,27 +47,23 @@
             </thead>
             <tbody>
             <tr th:each="client : ${clients}">
-                <td><b th:text="${client.clientNumber}" style="color:#00b894;"></b></td>
+                <td><b class="text-accent" th:text="${client.clientNumber}"></b></td>
                 <td th:text="${client.fullName}"></td>
                 <td th:text="${client.email} ?: '-'"></td>
                 <td th:text="${client.phone} ?: '-'"></td>
                 <td>
-                    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                    <div class="row-actions">
                         <a th:href="@{/loans(clientName=${client.fullName}, status='')}"
-                           class="action-btn"
-                           style="padding:6px 14px; font-size:12px;"
+                           class="action-btn btn-sm"
                            data-ru="Займы" data-en="Loans">Займы</a>
 
                         <a th:href="@{/admin/clients/{id}/edit(id=${client.id})}"
-                           class="action-btn approve"
-                           style="padding:6px 14px; font-size:12px;"
+                           class="action-btn approve btn-sm"
                            data-ru="Редактировать" data-en="Edit">Редактировать</a>
 
-                        <form th:action="@{/client/{id}/delete(id=${client.id})}" method="post"
-                              style="display:inline; margin:0;"
+                        <form class="d-inline m-0" th:action="@{/client/{id}/delete(id=${client.id})}" method="post"
                               onsubmit="return openConfirmForm(this, 'Удалить этого клиента? Все его займы также будут удалены.', 'Удалить')">
-                            <button type="submit" class="action-btn reject"
-                                    style="padding:6px 14px; font-size:12px;"
+                            <button type="submit" class="action-btn reject btn-sm"
                                     data-ru="Удалить" data-en="Delete">Удалить</button>
                         </form>
                     </div>

@@ -19,8 +19,7 @@ public class AdminClientController {
         this.clientService = clientService;
     }
 
-    // ===== СОЗДАНИЕ =====
-
+    //создание
     @GetMapping("/new")
     public String newForm(Model model) {
         model.addAttribute("client", new Client());
@@ -35,7 +34,7 @@ public class AdminClientController {
                          @RequestParam(required = false) String phone,
                          RedirectAttributes ra) {
 
-        // форма присылает ФИО по частям, собираю в одну строку
+        // форма присылает ФИО по частям собираю в одну строку
         String fullName = joinName(lastName, firstName, middleName);
         String nameError = checkName(lastName, firstName, middleName);
         if (nameError != null) {
@@ -73,7 +72,7 @@ public class AdminClientController {
         return "redirect:/client/search";
     }
 
-    // склеиваю фамилию, имя и отчество через пробел (пустые части пропускаю)
+    // склеиваю фамилию имя и отчество через пробел (пустые части пропускаю)
     private static String joinName(String lastName, String firstName, String middleName) {
         StringBuilder sb = new StringBuilder();
         for (String part : new String[]{lastName, firstName, middleName}) {
@@ -85,7 +84,7 @@ public class AdminClientController {
         return sb.toString();
     }
 
-    // та же проверка, что и в форме: только буквы и дефис, минимум 2 символа
+    // та же проверка что и в форме: только буквы и дефис, минимум 2 символа
     private static String checkName(String lastName, String firstName, String middleName) {
         String namePattern = "[А-ЯЁа-яёA-Za-z][А-ЯЁа-яёA-Za-z\\-]+";
         if (lastName == null || lastName.isBlank() || firstName == null || firstName.isBlank()) {
@@ -100,7 +99,7 @@ public class AdminClientController {
         return null;
     }
 
-    // ===== РЕДАКТИРОВАНИЕ =====
+    //редактирование
 
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model, RedirectAttributes ra) {

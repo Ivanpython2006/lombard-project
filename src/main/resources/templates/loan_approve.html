@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Оценка и одобрение" data-en="Valuation and Approval">Оценка и одобрение</title>
@@ -12,7 +12,7 @@
 <div class="main-content with-sidebar-center">
     <div class="form-container">
         <h2>
-            <span data-ru="Оценка и одобрение заявки " data-en="Valuation and Approval of Loan ">Оценка и одобрение заявки </span><b th:text="${loan.loanNumber}" style="color:#00b894;"></b>
+            <span data-ru="Оценка и одобрение заявки " data-en="Valuation and Approval of Loan ">Оценка и одобрение заявки </span><b class="text-accent" th:text="${loan.loanNumber}"></b>
         </h2>
         <div class="subtitle" data-ru="Оцените вещь и подтвердите сумму займа" data-en="Evaluate the item and confirm the loan amount">Оцените вещь и подтвердите сумму займа</div>
 
@@ -66,7 +66,7 @@
             <button type="submit" class="btn-green" data-ru="Одобрить заем" data-en="Approve Loan">Одобрить заем</button>
         </form>
 
-        <a th:href="@{/loans/{id}(id=${loan.id})}" class="btn-back" style="display:block; width:fit-content; margin:15px auto 0;"
+        <a th:href="@{/loans/{id}(id=${loan.id})}" class="btn-back d-block w-fit mx-auto-mt-15"
            data-ru="← Назад к займу" data-en="← Back to Loan">← Назад к займу</a>
     </div>
 </div>

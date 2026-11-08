@@ -1,27 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Редактировать залог" data-en="Edit Collateral">Редактировать залог</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .file-upload-wrap { position: relative; display: block; }
-        .file-upload-input { position: absolute; left: -9999px; opacity: 0; }
-        .file-upload-btn {
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 12px 24px; font-size: 13px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            color: #00b894; background: #fff; border: 2px dashed #00b894;
-            cursor: pointer; font-family: inherit; transition: all 0.15s ease;
-        }
-        .file-upload-btn:hover { background: #00b894; color: #fff; border-style: solid; }
-        .file-upload-name { display: block; margin-top: 8px; font-size: 12px; color: #666; font-style: italic; }
-        body.theme-dark .file-upload-btn { background: #1e1e1e; color: #00d4a8; border-color: #00d4a8; }
-        body.theme-dark .file-upload-btn:hover { background: #00d4a8; color: #111; }
-        body.theme-dark .file-upload-name { color: #999; }
-    </style>
 </head>
-<body>
+<body class="page-collateral-edit">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
@@ -29,12 +13,10 @@
     <div class="form-container">
         <h2 data-ru="Редактировать залог" data-en="Edit Collateral">Редактировать залог</h2>
 
-        <div class="alert alert-error" th:if="${error}" th:text="${error}"
-             style="padding:12px; border:1px solid #e74c3c; background:#fdeaea; margin-bottom:16px;"></div>
+        <div class="alert alert-error alert-form" th:if="${error}" th:text="${error}"></div>
 
-        <div th:if="${not #lists.isEmpty(collateral.photoUrls)}" style="margin-bottom:24px;">
-            <h3 data-ru="Фото вещи" data-en="Item Photos"
-                style="font-size:16px; font-weight:700; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #eee;">
+        <div class="mb-24" th:if="${not #lists.isEmpty(collateral.photoUrls)}">
+            <h3 class="section-title" data-ru="Фото вещи" data-en="Item Photos">
                 Фото вещи
             </h3>
             <div class="photo-grid"
@@ -62,8 +44,7 @@
         </div>
 
         <div th:if="${#lists.isEmpty(collateral.photoUrls)}"
-             class="hint"
-             style="padding:14px; background:#f8f9fa; border-left:3px solid #f59e0b; margin-bottom:20px;"
+             class="hint hint-warning"
              data-ru="Фото пока нет." data-en="No photos yet.">
             Фото пока нет.
         </div>
@@ -72,8 +53,7 @@
               enctype="multipart/form-data">
             <div class="form-group">
                 <label data-ru="Номер вещи" data-en="Item Number">Номер вещи</label>
-                <input type="text" th:value="${collateral.itemNumber}" readonly
-                       style="color:#00b894; font-weight:700;">
+                <input class="text-accent fw-bold" type="text" th:value="${collateral.itemNumber}" readonly>
             </div>
             <div class="form-group">
                 <label for="name" data-ru="Название" data-en="Name">Название</label>
@@ -107,7 +87,7 @@
                 <span class="file-upload-name" id="fileName"
                       data-ru="Файл не выбран" data-en="No file chosen">Файл не выбран</span>
 
-                <div class="hint" style="margin-top:8px;"
+                <div class="hint mt-8"
                      data-ru="JPG или PNG, до 5 МБ каждое. Можно выбрать сразу несколько."
                      data-en="JPG or PNG, up to 5 MB each. You can select multiple.">
                     JPG или PNG, до 5 МБ каждое. Можно выбрать сразу несколько.
@@ -118,7 +98,7 @@
                     data-ru="Сохранить изменения" data-en="Save Changes">Сохранить изменения</button>
         </form>
 
-        <a href="/collaterals" class="btn-back" style="display:block; width:fit-content; margin:20px auto 0;"
+        <a href="/collaterals" class="btn-back d-block w-fit mx-auto-mt-20"
            data-ru="← Назад к залогам" data-en="← Back to Collaterals">← Назад к залогам</a>
     </div>
 </div>

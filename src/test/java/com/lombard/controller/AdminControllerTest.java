@@ -305,4 +305,17 @@ class AdminControllerTest extends ControllerTestBase {
         mvc.perform(get("/admin/users").param("query", "test").param("role", "ADMIN")).andExpect(status().isOk());
     }
 
+
+    // у пользователя есть профиль клиента - удалять нельзя, показываю понятное сообщение
+    @Test
+    @WithMockUser(roles = "ADMIN", username = "admin")
+    void deleteUser_withClientProfile_showsError() throws Exception {
+        when(clientService.findByUserId(3L)).thenReturn(new Client());
+
+        mvc.perform(post("/admin/users/3/delete").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("error"));
+
+        verify(userService, never()).delete(any(), any());
+    }
 }

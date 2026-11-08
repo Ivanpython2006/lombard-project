@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Профиль менеджера" data-en="Manager Profile">Профиль менеджера</title>
@@ -21,10 +21,10 @@
 
     <div class="card-info">
         <h3 data-ru="Информация" data-en="Information">Информация</h3>
-        <div class="info-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="info-grid grid-cols-4">
             <div class="info-row-block">
                 <span class="info-label-block" data-ru="Номер" data-en="Number">Номер</span>
-                <span class="info-value-block" th:text="${manager.userNumber}" style="color:#00b894; font-weight:700;"></span>
+                <span class="info-value-block text-accent fw-bold" th:text="${manager.userNumber}"></span>
             </div>
             <div class="info-row-block">
                 <span class="info-label-block" data-ru="ID" data-en="ID">ID</span>
@@ -117,13 +117,12 @@
                 <tr th:each="h : ${history}">
                     <td th:text="${#temporals.format(h.changedAt, 'dd.MM.yyyy HH:mm')}"></td>
                     <td>
-                        <a th:if="${h.loan != null}"
+                        <a class="text-accent fw-bold no-underline" th:if="${h.loan != null}"
                            th:href="@{/loans/{id}(id=${h.loan.id})}"
-                           th:text="${h.loan.loanNumber}"
-                           style="color:#00b894; font-weight:700; text-decoration:none;"></a>
+                           th:text="${h.loan.loanNumber}"></a>
                         <span th:if="${h.loan == null}">-</span>
                     </td>
-                    <td style="max-width:400px; word-break:break-word;" th:text="${h.action}"></td>
+                    <td class="mw-400 text-break" th:text="${h.action}"></td>
                 </tr>
                 </tbody>
             </table>

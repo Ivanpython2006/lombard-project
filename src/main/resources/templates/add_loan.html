@@ -1,27 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Создать заявку" data-en="Create Request">Создать заявку</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .file-upload-wrap { position: relative; display: block; }
-        .file-upload-input { position: absolute; left: -9999px; opacity: 0; }
-        .file-upload-btn {
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 12px 24px; font-size: 13px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            color: #00b894; background: #fff; border: 2px dashed #00b894;
-            cursor: pointer; font-family: inherit; transition: all 0.15s ease;
-        }
-        .file-upload-btn:hover { background: #00b894; color: #fff; border-style: solid; }
-        .file-upload-name { display: block; margin-top: 8px; font-size: 12px; color: #666; font-style: italic; }
-        body.theme-dark .file-upload-btn { background: #1e1e1e; color: #00d4a8; border-color: #00d4a8; }
-        body.theme-dark .file-upload-btn:hover { background: #00d4a8; color: #111; }
-        body.theme-dark .file-upload-name { color: #999; }
-    </style>
 </head>
-<body>
+<body class="page-add-loan">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
@@ -82,7 +66,7 @@
                 <span class="file-upload-name" id="fileName"
                       data-ru="Файл не выбран" data-en="No file chosen">Файл не выбран</span>
 
-                <div class="hint" style="margin-top: 8px;"
+                <div class="hint mt-8"
                      data-ru="JPG или PNG, до 5 МБ каждое. Можно прикрепить несколько фото."
                      data-en="JPG or PNG, up to 5 MB each. You can attach multiple photos.">
                     JPG или PNG, до 5 МБ каждое. Можно прикрепить несколько фото.

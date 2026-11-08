@@ -213,16 +213,18 @@ class LoanServiceTest {
         verify(loanRepository).save(l);
     }
 
+    // просроченный заем после продления снова становится выданным, если новый срок еще не наступил
     @Test
-    void closeAndSell_existingLoan_changeStatus() {
+    void extendLoan_overdueLoan_becomesIssued() {
         Loan l = new Loan();
+        l.setStatus("Просрочен");
+        l.setDueDate(LocalDate.now().minusDays(5));
         when(loanRepository.findById(1L)).thenReturn(Optional.of(l));
 
-        loanService.closeLoan(1L);
-        assertEquals("Закрыт", l.getStatus());
+        loanService.extendLoan(1L, 1);
 
-        loanService.sellLoan(1L);
-        assertEquals("На продаже", l.getStatus());
+        assertEquals("Выдан", l.getStatus());
+        assertEquals(LocalDate.now().minusDays(5).plusMonths(1), l.getDueDate());
     }
 
     @Test
@@ -284,37 +286,40 @@ class LoanServiceTest {
         Loan l = issuedLoan(1L);
         when(loanRepository.findById(10L)).thenReturn(Optional.of(l));
 
-        assertTrue(loanService.repayLoan(10L, 1L, accountService));
-        assertEquals("Закрыт", l.getStatus());
+        when(loanRepository.save(l)).thenReturn(l);
+
+        assertEquals("Закрыт", loanService.repayLoan(10L, 1L, accountService).getStatus());
         verify(accountService).withdraw(eq(1L), any(), anyString());
     }
 
     @Test
-    void repayLoan_notEnoughMoney_returnsFalse() {
-        when(loanRepository.findById(10L)).thenReturn(Optional.of(issuedLoan(1L)));
+    void repayLoan_notEnoughMoney_throwsAndKeepsLoanOpen() {
+        Loan l = issuedLoan(1L);
+        when(loanRepository.findById(10L)).thenReturn(Optional.of(l));
         doThrow(new IllegalArgumentException("Нет денег")).when(accountService).withdraw(any(), any(), any());
 
-        assertFalse(loanService.repayLoan(10L, 1L, accountService));
+        assertThrows(IllegalArgumentException.class, () -> loanService.repayLoan(10L, 1L, accountService));
+        assertEquals("Выдан", l.getStatus());
     }
 
     // чужой заем погасить нельзя
     @Test
-    void repayLoan_otherClient_returnsFalse() {
+    void repayLoan_otherClient_throwsException() {
         when(loanRepository.findById(10L)).thenReturn(Optional.of(issuedLoan(1L)));
 
-        assertFalse(loanService.repayLoan(10L, 2L, accountService));
+        assertThrows(IllegalStateException.class, () -> loanService.repayLoan(10L, 2L, accountService));
         verifyNoInteractions(accountService);
     }
 
     @Test
-    void repayLoan_closedOrMissing_returnsFalse() {
+    void repayLoan_closedOrMissing_throwsException() {
         Loan closed = issuedLoan(1L);
         closed.setStatus("Закрыт");
         when(loanRepository.findById(10L)).thenReturn(Optional.of(closed));
         when(loanRepository.findById(11L)).thenReturn(Optional.empty());
 
-        assertFalse(loanService.repayLoan(10L, 1L, accountService));
-        assertFalse(loanService.repayLoan(11L, 1L, accountService));
+        assertThrows(IllegalStateException.class, () -> loanService.repayLoan(10L, 1L, accountService));
+        assertThrows(IllegalStateException.class, () -> loanService.repayLoan(11L, 1L, accountService));
     }
 
     // если займов нет база вернёт null а мы должны вернуть 0 (статистика)

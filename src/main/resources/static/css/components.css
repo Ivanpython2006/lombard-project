@@ -56,9 +56,6 @@
 }
 .btn-red:hover { background-color: #e74c3c; color: #fff; }
 
-.btn-white { background-color: #fff; color: #000; border: 1px solid #000; }
-.btn-white:hover { background-color: #000; color: #fff; }
-
 .btn-back {
     display: inline-block;
     padding: 12px 24px;
@@ -94,41 +91,6 @@ body.theme-dark .breadcrumbs { color: #999; }
 body.theme-dark .breadcrumbs a { color: #999; }
 body.theme-dark .breadcrumbs a:hover { color: #00d4a8; }
 body.theme-dark .breadcrumbs .current { color: #fff; }
-
-/* копирование ID */
-.copy-id {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    padding: 3px 8px;
-    border: 1px dashed #ccc;
-    background: #fff;
-    font-family: inherit;
-    font-size: 13px;
-    color: #000;
-    transition: all 0.15s ease;
-}
-.copy-id:hover { border-color: #00b894; color: #00b894; }
-.copy-id.copied {
-    border-color: #10b981;
-    color: #10b981;
-    border-style: solid;
-}
-.copy-id .copy-icon { font-size: 14px; opacity: 0.6; }
-.copy-id.copied .copy-icon { opacity: 1; }
-
-body.theme-dark .copy-id { background: #1e1e1e; color: #e0e0e0; border-color: #2a2a2a; }
-body.theme-dark .copy-id:hover { border-color: #00b894; color: #00d4a8; }
-
-/* сортировка по клику */
-th.sortable {
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.15s ease;
-}
-th.sortable:hover { background-color: #f0f0f0; }
-body.theme-dark th.sortable:hover { background-color: #2a2a2a !important; }
 
 /* формы */
 .form-group { margin-bottom: 16px; }
@@ -506,23 +468,14 @@ body.theme-dark .home-switchers .theme-btn.selected {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8f9fa;
-    border: 1px dashed #ccc;
-    color: #999;
+    color: #888;
     font-size: 12px;
     text-align: center;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
 }
 .no-photo-thumb { width: 60px; height: 60px; }
-.no-photo-card { width: 100%; height: 220px; margin-bottom: 12px; font-size: 13px; }
-.no-photo-big { width: 300px; height: 300px; margin: 0 auto; font-size: 14px; }
-body.theme-dark .no-photo-box {
-    background: #1e1e1e;
-    border-color: #2a2a2a;
-    color: #666;
-}
 
 /* компактная сетка фоток*/
 .photo-grid {
@@ -545,31 +498,6 @@ body.theme-dark .no-photo-box {
     height: 100%;
     object-fit: cover;
     display: block;
-}
-.photo-thumb .photo-del {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: rgba(231, 76, 60, 0.9);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s ease, transform 0.15s ease;
-    font-family: inherit;
-}
-.photo-thumb .photo-del:hover {
-    background: #c0392b;
-    transform: scale(1.1);
 }
 body.theme-dark .photo-thumb { border-color: #2a2a2a; background: #1e1e1e; }
 
@@ -782,22 +710,6 @@ body.theme-dark .photo-thumb-block button { background: #1e1e1e; border-top-colo
     letter-spacing: 0.5px;
     margin-bottom: 20px;
 }
-.photo-viewer-info .info-price {
-    font-size: 30px;
-    font-weight: 800;
-    color: #00d4a8;
-    letter-spacing: -0.5px;
-    line-height: 1;
-    margin-bottom: 24px;
-}
-.photo-viewer-info .info-price-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-}
 .photo-viewer-info .info-row {
     display: flex;
     flex-direction: column;
@@ -902,61 +814,6 @@ body.theme-dark .photo-thumb-block button { background: #1e1e1e; border-top-colo
 .badge-home.red {
     background-color: #e74c3c;
 }
-
-/* Плашки предупреждений на главной */
-.warning-alert {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fff;
-    border: 2px solid #f59e0b;
-    padding: 16px 24px;
-    text-decoration: none;
-    color: #000;
-    font-weight: 700;
-    font-size: 15px;
-    transition: all 0.2s;
-}
-.warning-alert:hover {
-    background: #fffbeb;
-}
-.warning-alert .count-badge {
-    background: #f59e0b;
-    color: #fff;
-    padding: 2px 10px;
-    border-radius: 12px;
-    font-size: 14px;
-}
-
-.info-alert {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fff;
-    border: 2px solid #3b82f6;
-    padding: 16px 24px;
-    text-decoration: none;
-    color: #000;
-    font-weight: 700;
-    font-size: 15px;
-    transition: all 0.2s;
-}
-.info-alert:hover {
-    background: #eff6ff;
-}
-.info-alert .count-badge {
-    background: #3b82f6;
-    color: #fff;
-    padding: 2px 10px;
-    border-radius: 12px;
-    font-size: 14px;
-}
-
-/*темная тема для плашек*/
-body.theme-dark .warning-alert { background: #1e1e1e; color: #e0e0e0; }
-body.theme-dark .warning-alert:hover { background: #2a2005; }
-body.theme-dark .info-alert { background: #1e1e1e; color: #e0e0e0; }
-body.theme-dark .info-alert:hover { background: #1e293b; }
 
 /*адаптив*/
 @media (max-width: 900px) {

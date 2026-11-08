@@ -1,41 +1,18 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Управление магазином" data-en="Manage Shop">Управление магазином</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .item-cell {
-            display: flex; align-items: baseline; justify-content: center;
-            gap: 6px; flex-wrap: nowrap;
-        }
-        .item-cell .item-link {
-            color: #000; text-decoration: none;
-            border-bottom: 1px dashed #bbb;
-            transition: all 0.15s ease;
-            font-size: 14px; font-weight: 700; white-space: nowrap;
-            background: none; border-top: none; border-left: none; border-right: none;
-            padding: 0; cursor: pointer; font-family: inherit; line-height: 1;
-        }
-        .item-cell .item-link:hover { color: #00b894; border-bottom-color: #00b894; border-bottom-style: solid; }
-        .item-cell .item-number-static {
-            font-size: 13px; color: #00b894; font-weight: 700;
-            letter-spacing: 0.3px; white-space: nowrap; line-height: 1;
-            text-decoration: none; cursor: default;
-        }
-        body.theme-dark .item-cell .item-link { color: #e0e0e0; border-bottom-color: #555; }
-        body.theme-dark .item-cell .item-link:hover { color: #00d4a8; border-bottom-color: #00d4a8; }
-        body.theme-dark .item-cell .item-number-static { color: #00d4a8; }
-    </style>
 </head>
-<body>
+<body class="page-shop-manage">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
     <h2 data-ru="Управление магазином" data-en="Manage Shop">Управление магазином</h2>
 
-    <form class="filter-bar" method="get" th:action="@{/shop/manage}" id="filterForm" style="margin-bottom:20px;">
+    <form class="filter-bar mb-20" method="get" th:action="@{/shop/manage}" id="filterForm">
         <input type="text" name="query" th:value="${query}"
                data-ru="Поиск по номеру, вещи или клиенту..."
                data-en="Search by number, item or client..."
@@ -81,9 +58,9 @@
                 </td>
                 <td th:text="${loan.client != null ? loan.client.fullName : '-'}"></td>
                 <td>
-                    <div style="display:flex; justify-content:center; align-items:center;">
-                        <form th:action="@{/shop/{id}/remove(id=${loan.id})}" method="post"
-                              onsubmit="return openConfirmForm(this, 'Снять товар с витрины? Он уйдет на склад.', 'Да')" style="margin:0;">
+                    <div class="d-flex justify-center items-center">
+                        <form class="m-0" th:action="@{/shop/{id}/remove(id=${loan.id})}" method="post"
+                              onsubmit="return openConfirmForm(this, 'Снять товар с витрины? Он уйдет на склад.', 'Да')">
                             <button type="submit" class="action-btn"
                                     data-ru="Снять с витрины" data-en="Remove from Sale">Снять с витрины</button>
                         </form>

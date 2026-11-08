@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -124,6 +125,9 @@ class ClientControllerTest extends ControllerTestBase {
         User u = new User(); u.setId(1L);
         Client c = new Client(); c.setId(1L);
         Loan l = new Loan(); l.setId(5L); l.setStatus("Ожидает подтверждения"); l.setClient(c);
+        // заявку подали 10 дней назад на 3 месяца
+        l.setCreatedDate(java.time.LocalDate.now().minusDays(10));
+        l.setDueDate(java.time.LocalDate.now().minusDays(10).plusMonths(3));
         when(userService.findByUsername("user")).thenReturn(u);
         when(clientService.findByUserId(1L)).thenReturn(c);
         when(loanService.findById(5L)).thenReturn(l);
@@ -132,6 +136,9 @@ class ClientControllerTest extends ControllerTestBase {
         mvc.perform(post("/client/loans/5/confirm").with(csrf()).param("agree", "true"))
                 .andExpect(status().is3xxRedirection());
         verify(loanService, atLeastOnce()).save(l);
+        assertEquals("Выдан", l.getStatus());
+        // срок считается с момента выдачи, а не с подачи заявки
+        assertEquals(java.time.LocalDate.now().plusMonths(3), l.getDueDate());
     }
 
     @Test
@@ -178,8 +185,10 @@ class ClientControllerTest extends ControllerTestBase {
         when(loanService.getItemName(l)).thenReturn("Phone");
 
         mvc.perform(post("/client/loans/5/repay").with(csrf()))
-                .andExpect(status().is3xxRedirection());
-        verify(accountService).withdraw(any(), any(), any());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("success"));
+        // списание и закрытие займа идут одной транзакцией в сервисе
+        verify(loanService).repayLoan(5L, 1L, accountService);
     }
 
     @Test

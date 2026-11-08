@@ -26,8 +26,7 @@ public class NotificationController {
         return userService.findByUsername(auth.getName());
     }
 
-    // ===== КЛИЕНТ =====
-
+    //клиент
     @GetMapping("/client/notifications")
     public String clientNotifications(@RequestParam(defaultValue = "unread") String tab,
                                       Model model, Authentication auth, RedirectAttributes ra) {
@@ -53,8 +52,7 @@ public class NotificationController {
         return "redirect:/client/notifications?tab=read";
     }
 
-    // ===== МЕНЕДЖЕР / АДМИН =====
-
+    //менеджер или админ
     @GetMapping("/admin/notifications")
     public String adminNotifications(@RequestParam(defaultValue = "unread") String tab,
                                      Model model, Authentication auth, RedirectAttributes ra) {
@@ -80,8 +78,7 @@ public class NotificationController {
         return "redirect:/admin/notifications?tab=read";
     }
 
-    // ===== ОБЩИЙ МЕТОД =====
-
+    //общий метод
     private String renderNotifications(String tab, Model model, Authentication auth,
                                        RedirectAttributes ra, boolean isStaff) {
         User user = currentUser(auth);

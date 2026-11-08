@@ -1,47 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Склад" data-en="Warehouse">Склад</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .file-upload-wrap { position: relative; display: block; }
-        .file-upload-input { position: absolute; left: -9999px; opacity: 0; }
-        .file-upload-btn {
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 12px 24px; font-size: 13px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            color: #00b894; background: #fff; border: 2px dashed #00b894;
-            cursor: pointer; font-family: inherit; transition: all 0.15s ease;
-        }
-        .file-upload-btn:hover { background: #00b894; color: #fff; border-style: solid; }
-        .file-upload-name { display: block; margin-top: 8px; font-size: 12px; color: #666; font-style: italic; }
-        body.theme-dark .file-upload-btn { background: #1e1e1e; color: #00d4a8; border-color: #00d4a8; }
-        body.theme-dark .file-upload-btn:hover { background: #00d4a8; color: #111; }
-        body.theme-dark .file-upload-name { color: #999; }
-
-        .actions-row {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: nowrap;
-        }
-        .actions-row .action-btn {
-            padding: 8px 12px;
-            font-size: 11px;
-            white-space: nowrap;
-            margin: 0;
-        }
-    </style>
 </head>
-<body>
+<body class="page-warehouse">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
-        <h2 style="margin-bottom:0;" data-ru="Склад" data-en="Warehouse">Склад</h2>
+    <div class="page-toolbar">
+        <h2 class="mb-0" data-ru="Склад" data-en="Warehouse">Склад</h2>
         <a href="/admin/warehouse/export" class="btn" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</a>
     </div>
 
@@ -77,9 +47,8 @@
             <tbody>
             <tr th:each="loan : ${loans}">
                 <td>
-                    <b th:if="${not #lists.isEmpty(loan.collaterals)}"
-                       th:text="${loan.collaterals[0].itemNumber}"
-                       style="color:#00b894;"></b>
+                    <b class="text-accent" th:if="${not #lists.isEmpty(loan.collaterals)}"
+                       th:text="${loan.collaterals[0].itemNumber}"></b>
                     <span th:if="${#lists.isEmpty(loan.collaterals)}">-</span>
                 </td>
                 <td>
@@ -122,9 +91,8 @@
                                 onclick="openPublishModal(this)"
                                 data-ru="Выложить в магазин" data-en="Publish to Shop">Выложить в магазин</button>
 
-                        <form th:if="${isAdmin}"
+                        <form class="d-inline m-0" th:if="${isAdmin}"
                               th:action="@{/admin/warehouse/{id}/delete(id=${loan.id})}" method="post"
-                              style="display:inline; margin:0;"
                               onsubmit="return openConfirmForm(this, 'Удалить залог безвозвратно? История займа пропадет. Это действие нельзя отменить.', 'Удалить')">
                             <button type="submit" class="action-btn reject"
                                     data-ru="Удалить" data-en="Delete">Удалить</button>
@@ -143,9 +111,9 @@
     </div>
 
     <!-- модалка редактирования -->
-    <div class="confirm-modal" id="editModal" style="background: rgba(0,0,0,0.5);">
-        <div class="confirm-box" style="max-width: 520px; text-align: left;">
-            <div class="confirm-title" style="text-align:center;"
+    <div class="confirm-modal bg-overlay" id="editModal">
+        <div class="confirm-box mw-520 text-left">
+            <div class="confirm-title text-center"
                  data-ru="Редактировать товар" data-en="Edit Item">Редактировать товар</div>
             <form method="post" id="editForm" enctype="multipart/form-data">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -175,7 +143,7 @@
                     <span class="file-upload-name" id="editFileName"
                           data-ru="Файл не выбран" data-en="No file chosen">Файл не выбран</span>
                 </div>
-                <div class="confirm-actions" style="margin-top: 20px; justify-content: space-between;">
+                <div class="confirm-actions mt-20 justify-between">
                     <button type="button" class="confirm-btn cancel" onclick="closeEditModal()"
                             data-ru="Отмена" data-en="Cancel">Отмена</button>
                     <button type="submit" class="confirm-btn danger"
@@ -186,9 +154,9 @@
     </div>
 
     <!-- модалка выложить -->
-    <div class="confirm-modal" id="publishModal" style="background: rgba(0,0,0,0.5);">
-        <div class="confirm-box" style="max-width: 520px; text-align: left;">
-            <div class="confirm-title" style="text-align:center;"
+    <div class="confirm-modal bg-overlay" id="publishModal">
+        <div class="confirm-box mw-520 text-left">
+            <div class="confirm-title text-center"
                  data-ru="Выложить в магазин" data-en="Publish to Shop">Выложить в магазин</div>
             <form method="post" id="publishForm">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -204,7 +172,7 @@
                     <label for="publishPrice" data-ru="Цена продажи (₽)" data-en="Sale Price (₽)">Цена продажи (₽)</label>
                     <input type="number" id="publishPrice" name="price" step="0.01" min="1" required>
                 </div>
-                <div class="confirm-actions" style="margin-top: 20px; justify-content: space-between;">
+                <div class="confirm-actions mt-20 justify-between">
                     <button type="button" class="confirm-btn cancel" onclick="closePublishModal()"
                             data-ru="Отмена" data-en="Cancel">Отмена</button>
                     <button type="submit" class="confirm-btn danger"

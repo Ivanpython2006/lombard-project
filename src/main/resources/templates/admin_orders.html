@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Заказы" data-en="Orders">Заказы</title>
@@ -10,8 +10,8 @@
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-        <h2 style="margin-bottom:0;" data-ru="Заказы" data-en="Orders">Заказы</h2>
+    <div class="page-toolbar-nowrap">
+        <h2 class="mb-0" data-ru="Заказы" data-en="Orders">Заказы</h2>
     </div>
 
     <form class="filter-bar" method="get" th:action="@{/admin/orders}" id="filterForm">
@@ -27,7 +27,7 @@
             <option value="Оплачен" th:selected="${filterStatus == 'Оплачен'}" data-ru="Оплачен" data-en="Paid">Оплачен</option>
             <option value="Собран" th:selected="${filterStatus == 'Собран'}" data-ru="Собран" data-en="Assembled">Собран</option>
             <option value="Доставлен" th:selected="${filterStatus == 'Доставлен'}" data-ru="Доставлен" data-en="Delivered">Доставлен</option>
-            <option value="Отменен" th:selected="${filterStatus == 'Отменен'}" data-ru="Отменен" data-en="Cancelled">Отменен</option>
+            <option value="Отменён" th:selected="${filterStatus == 'Отменён'}" data-ru="Отменён" data-en="Cancelled">Отменён</option>
         </select>
         <span class="filter-divider"></span>
 
@@ -65,7 +65,7 @@
             </thead>
             <tbody>
             <tr th:each="order : ${orders}">
-                <td><b th:text="${order.orderNumber}" style="color:#00b894;"></b></td>
+                <td><b class="text-accent" th:text="${order.orderNumber}"></b></td>
                 <td th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
                 <td th:text="${order.client != null ? order.client.fullName : '-'}"></td>
                 <td th:text="${order.contactPhone} ?: '-'"></td>
@@ -73,7 +73,7 @@
                     <span th:if="${order.deliveryType == 'DELIVERY'}" data-ru="Доставка" data-en="Delivery">Доставка</span>
                     <span th:if="${order.deliveryType == 'PICKUP'}" data-ru="Самовывоз" data-en="Pickup">Самовывоз</span>
                 </td>
-                <td style="max-width:280px; word-break:break-word; text-align:left;"
+                <td class="mw-280 text-break text-left"
                     th:text="${order.fullAddress}"></td>
                 <td th:text="${#lists.size(order.items)}"></td>
                 <td><b th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)} + ' ₽'"></b></td>
@@ -81,11 +81,10 @@
                     <span class="status-badge status-paid" th:if="${order.status == 'Оплачен'}" data-ru="Оплачен" data-en="Paid">Оплачен</span>
                     <span class="status-badge status-assembled" th:if="${order.status == 'Собран'}" data-ru="Собран" data-en="Assembled">Собран</span>
                     <span class="status-badge status-delivered" th:if="${order.status == 'Доставлен'}" data-ru="Доставлен" data-en="Delivered">Доставлен</span>
-                    <span class="status-badge status-cancelled" th:if="${order.status == 'Отменен'}" data-ru="Отменен" data-en="Cancelled">Отменен</span>
+                    <span class="status-badge status-cancelled" th:if="${order.status == 'Отменён'}" data-ru="Отменён" data-en="Cancelled">Отменён</span>
                 </td>
                 <td>
-                    <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn"
-                       style="padding:6px 14px; font-size:12px;"
+                    <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn btn-sm"
                        data-ru="Открыть" data-en="Open">Открыть</a>
                 </td>
             </tr>

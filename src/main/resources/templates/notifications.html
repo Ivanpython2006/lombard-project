@@ -1,46 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Уведомления" data-en="Notifications">Уведомления</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .notif-card {
-            border: 1px solid #e0e0e0; padding: 18px 22px;
-            background: #fff; display: flex; justify-content: space-between;
-            align-items: center; gap: 16px;
-            border-left: 5px solid #3b82f6; margin-bottom: 10px;
-        }
-        .notif-card.success { border-left-color: #10b981; }
-        .notif-card.warning { border-left-color: #f59e0b; }
-        .notif-card.danger  { border-left-color: #e74c3c; }
-        .notif-card.info    { border-left-color: #3b82f6; }
-        .notif-card.read-card { opacity: 0.65; background: #f8f9fa; }
-        .notif-content { flex: 1; }
-        .notif-message { font-size: 14px; color: #000; margin-bottom: 8px; line-height: 1.5; }
-        .notif-date { font-size: 12px; color: #999; }
-        .notif-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
-        .notif-badge {
-            display: inline-block; padding: 3px 10px; font-size: 11px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid; white-space: nowrap;
-        }
-        .notif-badge.success { color: #10b981; border-color: #10b981; background: #ecfdf5; }
-        .notif-badge.warning { color: #f59e0b; border-color: #f59e0b; background: #fffbeb; }
-        .notif-badge.danger  { color: #e74c3c; border-color: #e74c3c; background: #fef2f2; }
-        .notif-badge.info    { color: #3b82f6; border-color: #3b82f6; background: #eff6ff; }
-        body.theme-dark .notif-card { background: #1e1e1e; border-color: #2a2a2a; }
-        body.theme-dark .notif-card.read-card { background: #181818; }
-        body.theme-dark .notif-message { color: #e0e0e0; }
-        body.theme-dark .notif-date { color: #666; }
-    </style>
 </head>
-<body>
+<body class="page-notifications">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
-        <h2 style="margin-bottom:0;" data-ru="Уведомления" data-en="Notifications">Уведомления</h2>
+    <div class="page-toolbar">
+        <h2 class="mb-0" data-ru="Уведомления" data-en="Notifications">Уведомления</h2>
         <form th:action="${isStaff} ? @{/admin/notifications/mark-read} : @{/client/notifications/mark-read}"
               method="post" th:if="${unreadCount > 0}">
             <button type="submit" class="btn"
@@ -85,11 +56,10 @@
                 <span class="notif-badge warning" th:if="${n.type == 'WARNING'}" data-ru="Внимание" data-en="Attention">Внимание</span>
                 <span class="notif-badge danger" th:if="${n.type == 'DANGER'}" data-ru="Важно" data-en="Important">Важно</span>
 
-                <form th:if="${!n.read}"
+                <form class="d-inline" th:if="${!n.read}"
                       th:action="${isStaff} ? @{/admin/notifications/{id}/read(id=${n.id})} : @{/client/notifications/{id}/read(id=${n.id})}"
-                      method="post" style="display:inline;">
-                    <button type="submit" class="btn-green"
-                            style="padding:8px 14px; font-size:11px;"
+                      method="post">
+                    <button type="submit" class="btn-green p-8-14 fs-11"
                             data-ru="Прочитано" data-en="Read">Прочитано</button>
                 </form>
             </div>
@@ -165,8 +135,8 @@
                 en: (a) => `Loan ${a[0]} ("${a[1]}") overdue. Due was ${a[2]}. Collateral moved to warehouse and will be put up for sale.`
             },
             LOAN_OVERDUE_STAFF: {
-                ru: (a) => `Просрочка! Заем ${a[0]} («${a[1]}») переведен на склад. Клиент: ${a[2]}.`,
-                en: (a) => `Overdue! Loan ${a[0]} ("${a[1]}") moved to warehouse. Client: ${a[2]}.`
+                ru: (a) => `Просрочка! Заем ${a[0]} («${a[1]}») не погашен в срок. Клиент: ${a[2]}.`,
+                en: (a) => `Overdue! Loan ${a[0]} ("${a[1]}") was not repaid on time. Client: ${a[2]}.`
             },
             LOAN_REMINDER: {
                 ru: (a) => `Напоминание: по займу ${a[0]} («${a[1]}») ${a[2]} до срока возврата. Сумма: ${a[3]} руб. Вернуть до: ${a[4]}.`,
@@ -207,6 +177,26 @@
             ORDER_DELIVERED: {
                 ru: (a) => `Заказ ${a[0]} доставлен! Способ получения: ${a[2] || ''}.`,
                 en: (a) => `Order ${a[0]} has been delivered! Delivery method: ${a[2] || ''}.`
+            },
+            ORDER_ASSEMBLED: {
+                ru: (a) => `Заказ ${a[0]} собран и готов к выдаче. Способ получения: ${a[2] || ''}.`,
+                en: (a) => `Order ${a[0]} is assembled and ready. Delivery method: ${a[2] || ''}.`
+            },
+            ORDER_CANCELLED: {
+                ru: (a) => `Заказ ${a[0]} отменен. Деньги возвращены на ваш счет.`,
+                en: (a) => `Order ${a[0]} was cancelled. The money has been returned to your account.`
+            },
+            ORDER_STATUS: {
+                ru: (a) => `Статус заказа ${a[0]} изменен: «${a[1]}».`,
+                en: (a) => `Order ${a[0]} status changed: "${translateStatus(a[1])}".`
+            },
+            LOAN_ON_WAREHOUSE: {
+                ru: (a) => `Заем ${a[0]} («${a[1]}») просрочен на ${a[2]} дн. Вещь переведена на склад.`,
+                en: (a) => `Loan ${a[0]} ("${a[1]}") is ${a[2]} days overdue. The item has been moved to the warehouse.`
+            },
+            LOAN_ON_WAREHOUSE_STAFF: {
+                ru: (a) => `Заем ${a[0]} («${a[1]}») переведен на склад после просрочки. Клиент: ${a[2]}.`,
+                en: (a) => `Loan ${a[0]} ("${a[1]}") moved to warehouse after overdue. Client: ${a[2]}.`
             }
         };
 

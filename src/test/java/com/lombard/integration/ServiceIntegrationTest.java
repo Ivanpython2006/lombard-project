@@ -117,8 +117,6 @@ class ServiceIntegrationTest extends IntegrationTestBase {
         assertFalse(loanService.searchLoans("В ожидании", "L100", null).isEmpty());
 
         loanService.extendLoan(loan.getId(), 3);
-        loanService.closeLoan(loan.getId());
-        loanService.sellLoan(loan.getId());
 
         assertNotNull(loanService.getItemName(loan));
     }

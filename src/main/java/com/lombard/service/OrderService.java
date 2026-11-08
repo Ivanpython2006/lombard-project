@@ -8,20 +8,33 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class OrderService {
 
+    // какие статусы заказа можно ставить после текущего
+    private static final Map<String, Set<String>> ALLOWED_TRANSITIONS = Map.of(
+            "Оплачен", Set.of("Собран", "Отменён"),
+            "Собран", Set.of("Доставлен", "Отменён"),
+            "Доставлен", Set.of(),
+            "Отменён", Set.of()
+    );
+
     private final OrderRepository orderRepository;
     private final LoanRepository loanRepository;
     private final NumberSequenceService numberSequenceService;
+    private final AccountService accountService;
 
     public OrderService(OrderRepository orderRepository,
                         LoanRepository loanRepository,
-                        NumberSequenceService numberSequenceService) {
+                        NumberSequenceService numberSequenceService,
+                        AccountService accountService) {
         this.orderRepository = orderRepository;
         this.loanRepository = loanRepository;
         this.numberSequenceService = numberSequenceService;
+        this.accountService = accountService;
     }
 
     public List<Order> findAll() {
@@ -75,7 +88,7 @@ public class OrderService {
         }
 
         for (CartItem ci : cartItems) {
-            Loan loan = loanRepository.findById(ci.getLoan().getId()).orElse(null);
+            Loan loan = loanRepository.findByIdForUpdate(ci.getLoan().getId()).orElse(null);
             if (loan == null || !"На продаже".equals(loan.getStatus())) {
                 throw new IllegalStateException(
                         "Товар «" + (loan != null ? loan.getLoanNumber() : "?") +
@@ -97,6 +110,36 @@ public class OrderService {
 
         order.setOrderNumber(numberSequenceService.nextNumber("O", "O"));
 
+        return orderRepository.save(order);
+    }
+
+    // смена статуса заказа сотрудником. При отмене деньги возвращаются на счет клиента,
+    // а купленные вещи снова выставляются в магазин
+    @Transactional
+    public Order changeStatus(Long orderId, String newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Заказ не найден"));
+        String oldStatus = order.getStatus();
+        if (!ALLOWED_TRANSITIONS.getOrDefault(oldStatus, Set.of()).contains(newStatus)) {
+            throw new IllegalStateException("Нельзя перевести заказ из «" + oldStatus + "» в «" + newStatus + "»");
+        }
+
+        if ("Отменён".equals(newStatus)) {
+            if (order.getClient() != null && order.getTotalAmount() != null
+                    && order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+                accountService.deposit(order.getClient().getId(), order.getTotalAmount(),
+                        "Возврат за отмененный заказ " + order.getOrderNumber());
+            }
+            for (OrderItem item : order.getItems()) {
+                Loan loan = item.getLoan();
+                if (loan != null && "Куплен".equals(loan.getStatus())) {
+                    loan.setStatus("На продаже");
+                    loanRepository.save(loan);
+                }
+            }
+        }
+
+        order.setStatus(newStatus);
         return orderRepository.save(order);
     }
 }

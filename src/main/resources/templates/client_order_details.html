@@ -1,42 +1,18 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Заказ" data-en="Order">Заказ</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        /* Стили для миниатюры в таблице */
-        .order-thumb-wrap {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .order-thumb-wrap .photo-thumb-block {
-            width: 60px;
-            height: 60px;
-            border: 1px solid #e0e0e0;
-            background: #f8f9fa;
-            overflow: hidden;
-            cursor: zoom-in;
-        }
-        .order-thumb-wrap .photo-thumb-block img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        body.theme-dark .order-thumb-wrap .photo-thumb-block { border-color: #2a2a2a; background: #1e1e1e; }
-        body.theme-dark .order-thumb-wrap .photo-thumb-block img { background: #1e1e1e; }
-    </style>
 </head>
-<body>
+<body class="page-client-order-details">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
     <h2>
         <span data-ru="Заказ " data-en="Order ">Заказ </span>
-        <b th:text="${order.orderNumber}" style="color:#00b894;"></b>
+        <b class="text-accent" th:text="${order.orderNumber}"></b>
     </h2>
 
     <a href="/client/orders" class="btn-back"
@@ -47,7 +23,7 @@
         <div class="info-grid">
             <div class="info-row-block">
                 <span class="info-label-block" data-ru="Номер заказа" data-en="Order Number">Номер заказа</span>
-                <span class="info-value-block" th:text="${order.orderNumber}" style="color:#00b894;"></span>
+                <span class="info-value-block text-accent" th:text="${order.orderNumber}"></span>
             </div>
             <div class="info-row-block">
                 <span class="info-label-block" data-ru="Дата оформления" data-en="Created">Дата оформления</span>
@@ -62,8 +38,8 @@
                           data-ru="Собран" data-en="Assembled">Собран</span>
                     <span class="status-badge status-delivered" th:if="${order.status == 'Доставлен'}"
                           data-ru="Доставлен" data-en="Delivered">Доставлен</span>
-                    <span class="status-badge status-cancelled" th:if="${order.status == 'Отменен'}"
-                          data-ru="Отменен" data-en="Cancelled">Отменен</span>
+                    <span class="status-badge status-cancelled" th:if="${order.status == 'Отменён'}"
+                          data-ru="Отменён" data-en="Cancelled">Отменён</span>
                 </span>
             </div>
             <div class="info-row-block">
@@ -79,11 +55,11 @@
                 <span class="info-label-block" data-ru="Контактный телефон" data-en="Contact Phone">Контактный телефон</span>
                 <span class="info-value-block" th:text="${order.contactPhone} ?: '-'"></span>
             </div>
-            <div class="info-row-block" style="grid-column: span 2;">
+            <div class="info-row-block col-span-2">
                 <span class="info-label-block" data-ru="Адрес" data-en="Address">Адрес</span>
                 <span class="info-value-block" th:text="${order.fullAddress}"></span>
             </div>
-            <div class="info-row-block" style="grid-column: span 2;" th:if="${order.comment != null and !order.comment.isEmpty()}">
+            <div class="info-row-block col-span-2" th:if="${order.comment != null and !order.comment.isEmpty()}">
                 <span class="info-label-block" data-ru="Комментарий" data-en="Comment">Комментарий</span>
                 <span class="info-value-block" th:text="${order.comment}"></span>
             </div>
@@ -101,7 +77,7 @@
                     <th data-ru="Номер вещи" data-en="Item Number">Номер вещи</th>
                     <th data-ru="Название" data-en="Name">Название</th>
                     <th data-ru="Описание" data-en="Description">Описание</th>
-                    <th style="text-align:right;" data-ru="Цена" data-en="Price">Цена</th>
+                    <th class="text-right" data-ru="Цена" data-en="Price">Цена</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -110,7 +86,7 @@
                     <td>
                         <div class="order-thumb-wrap">
                             <!-- Обернули в photo-grid, чтобы скрипт из settings.html подхватил -->
-                            <div class="photo-grid" style="display:block; margin:0;"
+                            <div class="photo-grid d-block m-0"
                                  th:if="${item.loan != null and not #lists.isEmpty(item.loan.collaterals) and not #lists.isEmpty(item.loan.collaterals[0].photoUrls)}"
                                  th:attr="data-viewer-info=${'{&quot;name&quot;:&quot;' + (item.loan.collaterals[0].name != null ? item.loan.collaterals[0].name : '') + '&quot;,&quot;number&quot;:&quot;' + (item.loan.collaterals[0].itemNumber != null ? item.loan.collaterals[0].itemNumber : '') + '&quot;,&quot;description&quot;:&quot;' + (item.loan.collaterals[0].description != null ? item.loan.collaterals[0].description : '') + '&quot;,&quot;price&quot;:&quot;' + (item.loan.collaterals[0].estimatedPrice != null ? item.loan.collaterals[0].estimatedPrice : '') + '&quot;}'}">
                                 <div class="photo-thumb-block">
@@ -124,15 +100,14 @@
                         </div>
                     </td>
                     <td>
-                        <b th:if="${item.loan != null and not #lists.isEmpty(item.loan.collaterals)}"
-                           th:text="${item.loan.collaterals[0].itemNumber}"
-                           style="color:#00b894;"></b>
+                        <b class="text-accent" th:if="${item.loan != null and not #lists.isEmpty(item.loan.collaterals)}"
+                           th:text="${item.loan.collaterals[0].itemNumber}"></b>
                         <span th:if="${item.loan == null or #lists.isEmpty(item.loan.collaterals)}">-</span>
                     </td>
                     <td th:text="${item.itemName}"></td>
-                    <td style="max-width:300px; word-break:break-word; text-align:left;"
+                    <td class="mw-300 text-break text-left"
                         th:text="${item.loan != null and not #lists.isEmpty(item.loan.collaterals) ? item.loan.collaterals[0].description : '-'}"></td>
-                    <td style="text-align:right;"
+                    <td class="text-right"
                         th:text="${#numbers.formatDecimal(item.itemPrice, 1, 2)} + ' ₽'"></td>
                 </tr>
                 </tbody>

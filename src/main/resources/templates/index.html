@@ -1,65 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Ломбард - Главная" data-en="Lombard - Home">Ломбард - Главная</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .client-dashboard {
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 30px;
-        }
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .dashboard-card {
-            border: 1px solid #e0e0e0;
-            background: #fff;
-            padding: 20px;
-            text-align: center;
-        }
-        .dashboard-card .label {
-            font-size: 11px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .dashboard-card .value {
-            font-size: 28px;
-            font-weight: 800;
-            color: #000;
-            letter-spacing: -0.5px;
-        }
-        .dashboard-card .value.accent { color: #00b894; }
-        .dashboard-card .value.danger { color: #e74c3c; }
-
-        /* Стиль для бейджей на главной */
-        .badge-home {
-            background-color: #00b894;
-            color: white;
-            font-size: 14px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 12px;
-            min-width: 24px;
-            text-align: center;
-        }
-        .badge-home.red {
-            background-color: #e74c3c;
-        }
-
-        body.theme-dark .dashboard-card { background: #1e1e1e; border-color: #2a2a2a; }
-        body.theme-dark .dashboard-card .value { color: #fff; }
-    </style>
 </head>
-<body>
+<body class="page-index">
 
 <div class="bg-wheels" aria-hidden="true">
     <svg class="wheel-center" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
@@ -175,27 +122,26 @@
 
     <div class="tiles">
 
-        <div sec:authorize="hasRole('ADMIN')"
-             style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+        <div class="tiles-column" sec:authorize="hasRole('ADMIN')">
             <a href="/admin/notifications" class="tile" data-ru="Уведомления" data-en="Notifications">Уведомления</a>
 
-            <a href="/loans" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+            <a href="/loans" class="tile tile-centered">
                 <span data-ru="Все займы" data-en="All Loans">Все займы</span>
-                <span th:if="${pendingLoansCount != null and pendingLoansCount > 0}" class="badge-home" th:text="${pendingLoansCount > 99 ? '99+' : pendingLoansCount}" style="position:absolute; right:20px;"></span>
+                <span th:if="${pendingLoansCount != null and pendingLoansCount > 0}" class="badge-home badge-corner" th:text="${pendingLoansCount > 99 ? '99+' : pendingLoansCount}"></span>
             </a>
 
-            <a href="/admin/intake" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+            <a href="/admin/intake" class="tile tile-centered">
                 <span data-ru="Прием вещей" data-en="Intake">Прием вещей</span>
-                <span th:if="${pendingIntakeCount != null and pendingIntakeCount > 0}" class="badge-home" th:text="${pendingIntakeCount > 99 ? '99+' : pendingIntakeCount}" style="position:absolute; right:20px;"></span>
+                <span th:if="${pendingIntakeCount != null and pendingIntakeCount > 0}" class="badge-home badge-corner" th:text="${pendingIntakeCount > 99 ? '99+' : pendingIntakeCount}"></span>
             </a>
 
             <a href="/collaterals" class="tile" data-ru="Залоги" data-en="Collaterals">Залоги</a>
             <a href="/client/search" class="tile" data-ru="Клиенты" data-en="Clients">Клиенты</a>
             <a href="/shop/manage" class="tile" data-ru="Магазин" data-en="Shop">Магазин</a>
 
-            <a href="/admin/orders" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+            <a href="/admin/orders" class="tile tile-centered">
                 <span data-ru="Заказы" data-en="Orders">Заказы</span>
-                <span th:if="${pendingOrdersCount != null and pendingOrdersCount > 0}" class="badge-home" th:text="${pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}" style="position:absolute; right:20px;"></span>
+                <span th:if="${pendingOrdersCount != null and pendingOrdersCount > 0}" class="badge-home badge-corner" th:text="${pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}"></span>
             </a>
 
             <a href="/admin/warehouse" class="tile" data-ru="Склад" data-en="Warehouse">Склад</a>
@@ -204,54 +150,52 @@
             <a href="/admin/stats" class="tile" data-ru="Статистика" data-en="Statistics">Статистика</a>
         </div>
 
-        <div sec:authorize="hasRole('MANAGER')"
-             style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+        <div class="tiles-column" sec:authorize="hasRole('MANAGER')">
             <a href="/admin/notifications" class="tile" data-ru="Уведомления" data-en="Notifications">Уведомления</a>
 
-            <a href="/loans" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+            <a href="/loans" class="tile tile-centered">
                 <span data-ru="Все займы" data-en="All Loans">Все займы</span>
-                <span th:if="${pendingLoansCount != null and pendingLoansCount > 0}" class="badge-home" th:text="${pendingLoansCount > 99 ? '99+' : pendingLoansCount}" style="position:absolute; right:20px;"></span>
+                <span th:if="${pendingLoansCount != null and pendingLoansCount > 0}" class="badge-home badge-corner" th:text="${pendingLoansCount > 99 ? '99+' : pendingLoansCount}"></span>
             </a>
 
-            <a href="/admin/intake" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+            <a href="/admin/intake" class="tile tile-centered">
                 <span data-ru="Прием вещей" data-en="Intake">Прием вещей</span>
-                <span th:if="${pendingIntakeCount != null and pendingIntakeCount > 0}" class="badge-home" th:text="${pendingIntakeCount > 99 ? '99+' : pendingIntakeCount}" style="position:absolute; right:20px;"></span>
+                <span th:if="${pendingIntakeCount != null and pendingIntakeCount > 0}" class="badge-home badge-corner" th:text="${pendingIntakeCount > 99 ? '99+' : pendingIntakeCount}"></span>
             </a>
 
             <a href="/collaterals" class="tile" data-ru="Залоги" data-en="Collaterals">Залоги</a>
             <a href="/client/search" class="tile" data-ru="Клиенты" data-en="Clients">Клиенты</a>
             <a href="/shop/manage" class="tile" data-ru="Магазин" data-en="Shop">Магазин</a>
 
-            <a href="/admin/orders" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+            <a href="/admin/orders" class="tile tile-centered">
                 <span data-ru="Заказы" data-en="Orders">Заказы</span>
-                <span th:if="${pendingOrdersCount != null and pendingOrdersCount > 0}" class="badge-home" th:text="${pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}" style="position:absolute; right:20px;"></span>
+                <span th:if="${pendingOrdersCount != null and pendingOrdersCount > 0}" class="badge-home badge-corner" th:text="${pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}"></span>
             </a>
 
             <a href="/admin/warehouse" class="tile" data-ru="Склад" data-en="Warehouse">Склад</a>
         </div>
 
-        <div sec:authorize="hasRole('CLIENT')"
-             style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+        <div class="tiles-column" sec:authorize="hasRole('CLIENT')">
             <a href="/client/loans/new" class="tile" data-ru="Создать заявку" data-en="Create Request">Создать заявку</a>
 
-            <a href="/client/loans" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+            <a href="/client/loans" class="tile tile-centered">
                 <span data-ru="Мои займы" data-en="My Loans">Мои займы</span>
-                <span th:if="${activeLoansCount != null and activeLoansCount > 0}" class="badge-home" th:text="${activeLoansCount > 99 ? '99+' : activeLoansCount}" style="position:absolute; right:20px;"></span>
+                <span th:if="${activeLoansCount != null and activeLoansCount > 0}" class="badge-home badge-corner" th:text="${activeLoansCount > 99 ? '99+' : activeLoansCount}"></span>
             </a>
 
             <a href="/shop" class="tile" data-ru="Магазин" data-en="Shop">Магазин</a>
 
-            <a href="/client/cart" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+            <a href="/client/cart" class="tile tile-centered">
                 <span data-ru="Корзина" data-en="Cart">Корзина</span>
-                <span th:if="${cartCount != null and cartCount > 0}" class="badge-home" th:text="${cartCount > 99 ? '99+' : cartCount}" style="position:absolute; right:20px;"></span>
+                <span th:if="${cartCount != null and cartCount > 0}" class="badge-home badge-corner" th:text="${cartCount > 99 ? '99+' : cartCount}"></span>
             </a>
 
             <a href="/client/orders" class="tile" data-ru="Мои заказы" data-en="My Orders">Мои заказы</a>
             <a href="/client/account" class="tile" data-ru="Мой счет" data-en="My Account">Мой счет</a>
 
-            <a href="/client/notifications" class="tile" style="display:flex; justify-content:center; align-items:center; position:relative;">
+            <a href="/client/notifications" class="tile tile-centered">
                 <span data-ru="Уведомления" data-en="Notifications">Уведомления</span>
-                <span th:if="${unreadNotifications != null and unreadNotifications > 0}" class="badge-home red" th:text="${unreadNotifications > 99 ? '99+' : unreadNotifications}" style="position:absolute; right:20px;"></span>
+                <span th:if="${unreadNotifications != null and unreadNotifications > 0}" class="badge-home red badge-corner" th:text="${unreadNotifications > 99 ? '99+' : unreadNotifications}"></span>
             </a>
 
             <a href="/client/profile" class="tile" data-ru="Мой профиль" data-en="My Profile">Мой профиль</a>
@@ -262,7 +206,7 @@
 
         <a href="/about" class="tile tile-green" data-ru="Об авторе" data-en="About">Об авторе</a>
 
-        <form th:action="@{/logout}" method="post" style="width: 100%;">
+        <form class="w-100" th:action="@{/logout}" method="post">
             <button type="submit" class="tile tile-red" data-ru="Выход" data-en="Logout">Выход</button>
         </form>
     </div>

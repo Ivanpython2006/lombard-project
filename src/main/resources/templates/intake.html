@@ -1,33 +1,18 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Прием вещей" data-en="Intake">Прием вещей</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .action-buttons-row {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: nowrap;
-        }
-        .action-buttons-row .action-btn {
-            padding: 8px 12px;
-            font-size: 11px;
-            white-space: nowrap;
-            margin: 0;
-        }
-    </style>
 </head>
-<body>
+<body class="page-intake">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
     <!-- Шапка с заголовком и кнопкой экспорта -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
-        <h2 style="margin-bottom:0;" data-ru="Прием вещей" data-en="Intake of Items">Прием вещей</h2>
+    <div class="page-toolbar">
+        <h2 class="mb-0" data-ru="Прием вещей" data-en="Intake of Items">Прием вещей</h2>
         <a href="/admin/intake/export" class="btn" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</a>
     </div>
 
@@ -62,14 +47,13 @@
             <tbody>
             <tr th:each="loan : ${loans}">
                 <td>
-                    <b th:if="${not #lists.isEmpty(loan.collaterals)}"
-                       th:text="${loan.collaterals[0].itemNumber}"
-                       style="color:#00b894;"></b>
+                    <b class="text-accent" th:if="${not #lists.isEmpty(loan.collaterals)}"
+                       th:text="${loan.collaterals[0].itemNumber}"></b>
                     <span th:if="${#lists.isEmpty(loan.collaterals)}">—</span>
                 </td>
                 <td th:text="${loan.client != null ? loan.client.fullName : '—'}"></td>
                 <td th:text="${not #lists.isEmpty(loan.collaterals) ? loan.collaterals[0].name : '—'}"></td>
-                <td style="max-width:300px; word-break:break-word; text-align:left;"
+                <td class="mw-300 text-break text-left"
                     th:text="${not #lists.isEmpty(loan.collaterals) ? loan.collaterals[0].description : '—'}"></td>
                 <td th:text="${loan.amount} + ' ₽'"></td>
                 <td th:text="${loan.createdDate}"></td>
@@ -78,9 +62,8 @@
                         <a th:href="@{/loans/{id}/approve(id=${loan.id})}" class="action-btn approve"
                            data-ru="Оценить" data-en="Evaluate">Оценить</a>
 
-                        <form th:action="@{/loans/{id}/status(id=${loan.id})}" method="post"
-                              onsubmit="return openConfirmForm(this, 'Отклонить заявку?', 'Отклонить')"
-                              style="display:inline; margin:0;">
+                        <form class="d-inline m-0" th:action="@{/loans/{id}/status(id=${loan.id})}" method="post"
+                              onsubmit="return openConfirmForm(this, 'Отклонить заявку?', 'Отклонить')">
                             <input type="hidden" name="status" value="Отклонен">
                             <button type="submit" class="action-btn reject"
                                     data-ru="Отклонить" data-en="Reject">Отклонить</button>

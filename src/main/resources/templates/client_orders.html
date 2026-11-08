@@ -1,42 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Мои заказы" data-en="My Orders">Мои заказы</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .order-number-link {
-            display: inline-block;
-            padding: 4px 10px;
-            font-size: 13px;
-            font-weight: 800;
-            color: #00b894;
-            text-decoration: none;
-            border: 1px solid #00b894;
-            background: #e6faf5;
-            letter-spacing: 0.3px;
-            transition: all 0.15s ease;
-        }
-        .order-number-link:hover { background: #00b894; color: #fff; }
-        body.theme-dark .order-number-link { background: #0a2e27; color: #00d4a8; border-color: #00d4a8; }
-        body.theme-dark .order-number-link:hover { background: #00d4a8; color: #111; }
-
-        .order-items-cell {
-            display: flex; flex-direction: column; gap: 2px; align-items: center;
-        }
-        .order-item-name { font-size: 13px; color: #000; font-weight: 500; }
-        .order-items-more { font-size: 11px; color: #999; font-weight: 600; }
-        body.theme-dark .order-item-name { color: #e0e0e0; }
-        body.theme-dark .order-items-more { color: #666; }
-    </style>
 </head>
-<body>
+<body class="page-client-orders">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-        <h2 style="margin-bottom:0;" data-ru="Мои заказы" data-en="My Orders">Мои заказы</h2>
+    <div class="page-toolbar-nowrap">
+        <h2 class="mb-0" data-ru="Мои заказы" data-en="My Orders">Мои заказы</h2>
     </div>
 
     <form class="filter-bar" method="get" th:action="@{/client/orders}" id="filterForm">

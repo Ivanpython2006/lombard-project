@@ -50,6 +50,9 @@ public class LoanController {
             Map.entry("Куплен", Set.of())
     );
 
+    private static final Set<String> DELETABLE_STATUSES =
+            Set.of("В ожидании", "Отклонен", "Отменена", "Закрыт");
+
     private final LoanService loanService;
     private final ClientService clientService;
     private final UserService userService;
@@ -196,7 +199,7 @@ public class LoanController {
             return "redirect:/loans";
         }
 
-        // ИСПРАВЛЕНИЕ: Чтобы Thymeleaf не падал, если photoUrls = null
+        // Чтобы Thymeleaf не падал если photoUrls = null
         if (loan.getCollaterals() != null) {
             loan.getCollaterals().forEach(c -> {
                 if (c.getPhotoUrls() == null) c.setPhotoUrls(new ArrayList<>());
@@ -227,6 +230,10 @@ public class LoanController {
         if (loan == null) {
             ra.addFlashAttribute("error", "Заем не найден");
             return "redirect:/loans";
+        }
+        if (!"В ожидании".equals(loan.getStatus())) {
+            ra.addFlashAttribute("error", "Оценить можно только новую заявку (статус «В ожидании»)");
+            return "redirect:/loans/" + id;
         }
         model.addAttribute("loan", loan);
         return "loan_approve";
@@ -262,12 +269,23 @@ public class LoanController {
             ra.addFlashAttribute("error", "Заем не найден");
             return "redirect:/loans";
         }
+        // одобрить можно только новую заявку, иначе закрытый заем "ожил" бы заново
+        if (!"В ожидании".equals(loan.getStatus())) {
+            ra.addFlashAttribute("error", "Оценить можно только новую заявку (статус «В ожидании»)");
+            return "redirect:/loans/" + id;
+        }
 
         BigDecimal safeAmount = (approvedAmountVal != null && approvedAmountVal.compareTo(BigDecimal.ZERO) > 0)
                 ? approvedAmountVal : loan.getAmount();
 
+        // ломбард не дает больше чем стоит вещь
+        if (safeAmount == null || safeAmount.compareTo(estimatedPriceVal) > 0) {
+            ra.addFlashAttribute("error", "Сумма займа не может быть больше оценки вещи");
+            return "redirect:/loans/" + id + "/approve";
+        }
+
+        // запрошенную клиентом сумму (amount) не трогаю, одобренная хранится отдельно
         loan.setRate(rateVal);
-        loan.setAmount(safeAmount);
         loan.setStatus("Ожидает подтверждения");
         loan.setAgreedAmount(safeAmount);
         loan.setClientApproved(null);
@@ -370,7 +388,11 @@ public class LoanController {
             return "redirect:/loans";
         }
 
-        if (amount != null && amount.compareTo(BigDecimal.ZERO) > 0) loan.setAmount(amount);
+        // после одобрения правится одобренная сумма, до него - запрошенная
+        if (amount != null && amount.compareTo(BigDecimal.ZERO) > 0) {
+            if (loan.getAgreedAmount() != null) loan.setAgreedAmount(amount);
+            else loan.setAmount(amount);
+        }
         if (rate != null && rate.compareTo(BigDecimal.ZERO) >= 0) loan.setRate(rate);
         // через форму редактирования действуют те же правила переходов, что и в changeStatus
         String oldStatus = loan.getStatus();
@@ -522,6 +544,14 @@ public class LoanController {
             ra.addFlashAttribute("error", "Заем не найден");
             return "redirect:/loans";
         }
+        if (!"Выдан".equals(loan.getStatus()) && !"Просрочен".equals(loan.getStatus())) {
+            ra.addFlashAttribute("error", "Продлить можно только выданный или просроченный заем");
+            return "redirect:/loans/" + id;
+        }
+        if (months < 1 || months > 12) {
+            ra.addFlashAttribute("error", "Продлить можно на срок от 1 до 12 месяцев");
+            return "redirect:/loans/" + id;
+        }
         loanService.extendLoan(id, months);
         Loan updated = loanService.findById(id);
         String itemName = loanService.getItemName(updated);
@@ -551,6 +581,12 @@ public class LoanController {
                              Authentication auth,
                              RedirectAttributes ra) {
         if (!isAdminOrManager(auth)) return "redirect:/loans";
+        Loan loan = loanService.findById(id);
+        // удалить можно только заявку без денег и залога в работе: новую отклоненную отмененную или закрытую
+        if (loan != null && !DELETABLE_STATUSES.contains(loan.getStatus())) {
+            ra.addFlashAttribute("error", "Нельзя удалить заем в статусе «" + loan.getStatus() + "»");
+            return "redirect:/loans/" + id;
+        }
         loanService.delete(id);
         ra.addFlashAttribute("success", "Заявка удалена");
         ra.addAttribute("page", page != null ? page : 1);

@@ -1,74 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Заем" data-en="Loan">Заем</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .loan-top {
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 20px; flex-wrap: wrap; margin-bottom: 25px;
-            padding-bottom: 20px; border-bottom: 2px solid #e0e0e0;
-        }
-        .loan-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
-        .loan-title b { color: #00b894; }
-        .loan-top-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-
-        .loan-main-card {
-            display: grid; grid-template-columns: 320px 1fr;
-            gap: 30px; border: 1px solid #e0e0e0; background: #fff;
-            padding: 30px; margin-bottom: 25px;
-        }
-        @media (max-width: 900px) { .loan-main-card { grid-template-columns: 1fr; } }
-        .loan-photo-box { width: 100%; max-width: 320px; }
-        .loan-photo-box .photo-slider-inner,
-        .loan-photo-box .photo-slider-empty { height: 320px !important; }
-
-        .loan-info-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr);
-            gap: 20px 30px; align-content: start;
-        }
-        @media (max-width: 700px) { .loan-info-grid { grid-template-columns: 1fr; } }
-        .loan-info-block { display: flex; flex-direction: column; gap: 6px; }
-        .loan-info-block.full { grid-column: span 2; }
-        @media (max-width: 700px) { .loan-info-block.full { grid-column: span 1; } }
-        .loan-info-label {
-            font-size: 11px; color: #666; text-transform: uppercase;
-            font-weight: 700; letter-spacing: 0.5px;
-        }
-        .loan-info-value { font-size: 16px; font-weight: 600; color: #000; }
-        .loan-info-value.accent { color: #00b894; font-weight: 800; }
-        .loan-info-value.big { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
-
-        .client-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr);
-            gap: 20px 30px;
-        }
-        @media (max-width: 700px) { .client-grid { grid-template-columns: 1fr; } }
-
-        .status-badge-lg {
-            display: inline-block; padding: 8px 16px;
-            font-size: 13px; font-weight: 800; border: 2px solid;
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .status-badge-lg.status-waiting { border-color: #f59e0b; color: #f59e0b; background: #fffbeb; }
-        .status-badge-lg.status-approved { border-color: #00b894; color: #00b894; background: #ecfdf5; }
-        .status-badge-lg.status-rejected { border-color: #e74c3c; color: #e74c3c; background: #fef2f2; }
-        .status-badge-lg.status-issued { border-color: #10b981; color: #10b981; background: #ecfdf5; }
-        .status-badge-lg.status-closed { border-color: #6b7280; color: #6b7280; background: #f3f4f6; }
-        .status-badge-lg.status-sold { border-color: #e74c3c; color: #e74c3c; background: #fef2f2; }
-        .status-badge-lg.status-cancelled-loan { border-color: #e74c3c; color: #e74c3c; background: #fef2f2; }
-        .status-badge-lg.status-overdue { border-color: #c0392b; color: #c0392b; background: #fdeaea; }
-        .status-badge-lg.status-instock { border-color: #6b7280; color: #6b7280; background: #f3f4f6; }
-        .status-badge-lg.status-purchased { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
-
-        body.theme-dark .loan-main-card { background: #1e1e1e; border-color: #2a2a2a; }
-        body.theme-dark .loan-top { border-bottom-color: #2a2a2a; }
-        body.theme-dark .loan-info-value { color: #e0e0e0; }
-    </style>
 </head>
-<body>
+<body class="page-loan-details">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
@@ -79,12 +17,11 @@
         <a sec:authorize="hasRole('CLIENT')" th:href="@{/client/loans}" data-ru="Мои займы" data-en="My Loans">Мои займы</a>
         <span class="separator">/</span>
         <span class="current">
-            <span data-ru="Заем " data-en="Loan ">Заем </span><b th:text="${loan.loanNumber}" style="color:#00b894;"></b>
+            <span data-ru="Заем " data-en="Loan ">Заем </span><b class="text-accent" th:text="${loan.loanNumber}"></b>
         </span>
     </div>
 
-    <a href="javascript:history.back()" class="btn-back"
-       style="display:inline-block; margin-bottom:20px;"
+    <a href="javascript:history.back()" class="btn-back d-inline-block mb-20"
        data-ru="← Назад" data-en="← Back">← Назад</a>
 
     <div class="loan-top">
@@ -119,17 +56,14 @@
 
             <a th:if="${isAdminOrManager and loan.status == 'В ожидании'}"
                th:href="@{/loans/{id}/approve(id=${loan.id})}"
-               class="btn-green"
-               style="padding:12px 24px; font-size:13px;"
+               class="btn-green p-12-24 fs-13"
                data-ru="Одобрить" data-en="Approve">Одобрить</a>
 
-            <form th:if="${isAdminOrManager and loan.status == 'В ожидании'}"
+            <form class="d-inline" th:if="${isAdminOrManager and loan.status == 'В ожидании'}"
                   th:action="@{/loans/{id}/status(id=${loan.id})}" method="post"
-                  onsubmit="return openConfirmForm(this, 'Отклонить заявку?', 'Отклонить')"
-                  style="display:inline;">
+                  onsubmit="return openConfirmForm(this, 'Отклонить заявку?', 'Отклонить')">
                 <input type="hidden" name="status" value="Отклонен">
-                <button type="submit" class="btn-red"
-                        style="padding:12px 24px; font-size:13px;"
+                <button type="submit" class="btn-red p-12-24 fs-13"
                         data-ru="Отклонить" data-en="Reject">Отклонить</button>
             </form>
         </div>
@@ -149,15 +83,14 @@
             <div th:if="${not #lists.isEmpty(loan.collaterals)}"
                  th:replace="~{fragments/photo-slider :: slider(${loan.collaterals[0].photoUrls}, ${loan.collaterals[0].name}, 320)}"></div>
             <div th:if="${#lists.isEmpty(loan.collaterals)}"
-                 class="photo-slider-empty"
-                 style="height:320px;"
+                 class="photo-slider-empty h-320"
                  data-ru="Нет фото" data-en="No photo">Нет фото</div>
         </div>
 
         <div class="loan-info-grid">
             <div class="loan-info-block">
                 <span class="loan-info-label" data-ru="Сумма займа" data-en="Loan Amount">Сумма займа</span>
-                <span class="loan-info-value big" th:text="${#numbers.formatDecimal(loan.amount, 1, 2)} + ' ₽'"></span>
+                <span class="loan-info-value big" th:text="${#numbers.formatDecimal(loan.principal, 1, 2)} + ' ₽'"></span>
             </div>
             <div class="loan-info-block">
                 <span class="loan-info-label" data-ru="К возврату" data-en="Total to Return">К возврату</span>
@@ -190,7 +123,7 @@
             </div>
             <div class="loan-info-block full" th:if="${not #lists.isEmpty(loan.collaterals)}">
                 <span class="loan-info-label" data-ru="Описание" data-en="Description">Описание</span>
-                <span class="loan-info-value" style="font-weight: 500; font-size: 14px; line-height: 1.5;"
+                <span class="loan-info-value fw-medium fs-14 lh-15"
                       th:text="${loan.collaterals[0].description} ?: '-'"></span>
             </div>
             <div class="loan-info-block full" th:if="${not #lists.isEmpty(loan.collaterals)}">
@@ -214,12 +147,12 @@
             </div>
             <div class="loan-info-block">
                 <span class="loan-info-label" data-ru="Email" data-en="Email">Email</span>
-                <span class="loan-info-value" style="font-weight: 500;"
+                <span class="loan-info-value fw-medium"
                       th:text="${loan.client.email} ?: '-'"></span>
             </div>
             <div class="loan-info-block">
                 <span class="loan-info-label" data-ru="Телефон" data-en="Phone">Телефон</span>
-                <span class="loan-info-value" style="font-weight: 500;"
+                <span class="loan-info-value fw-medium"
                       th:text="${loan.client.phone} ?: '-'"></span>
             </div>
         </div>
@@ -272,10 +205,9 @@
                         data-ru="Продлить на 1 мес." data-en="Extend by 1 month">Продлить на 1 мес.</button>
             </form>
 
-            <form th:if="${isAdminOrManager}"
+            <form class="d-inline m-0" th:if="${isAdminOrManager}"
                   th:action="@{/loans/{id}/delete(id=${loan.id})}"
                   method="post"
-                  style="display:inline; margin:0;"
                   onsubmit="return openConfirmForm(this, 'Удалить этот заем?', 'Удалить')">
                 <button type="submit" class="action-btn reject"
                         data-ru="Удалить" data-en="Delete">Удалить</button>
@@ -286,15 +218,13 @@
     <div class="card-info" th:if="${!isAdminOrManager and (loan.status == 'Выдан' or loan.status == 'Просрочен')}">
         <h3 data-ru="Действия" data-en="Actions">Действия</h3>
         <div class="actions">
-            <form th:action="@{/client/loans/{id}/repay(id=${loan.id})}" method="post"
-                  onsubmit="return openConfirmForm(this, 'Погасить заем? С баланса спишется вся сумма к возврату.', 'Погасить')"
-                  style="display:inline;">
-                <button type="submit" class="btn-green"
-                        style="padding:12px 22px; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;"
+            <form class="d-inline" th:action="@{/client/loans/{id}/repay(id=${loan.id})}" method="post"
+                  onsubmit="return openConfirmForm(this, 'Погасить заем? С баланса спишется вся сумма к возврату.', 'Погасить')">
+                <button type="submit" class="btn-green btn-compact"
                         data-ru="Погасить заем" data-en="Repay Loan">Погасить заем</button>
             </form>
         </div>
-        <div class="hint" style="margin-top:12px;"
+        <div class="hint mt-12"
              th:style="${loan.status == 'Просрочен'} ? 'color:#e74c3c;' : ''">
             <span th:if="${loan.status == 'Просрочен'}"
                   data-ru="Заем просрочен. Погасите его как можно скорее, чтобы вернуть вещь."
@@ -307,19 +237,18 @@
                 С баланса спишется сумма к возврату. Пополните счет, если средств недостаточно.
             </span>
         </div>
-        <div style="margin-top:12px;">
+        <div class="mt-12">
             <a th:href="@{/client/account}" class="action-btn"
                data-ru="Пополнить счет" data-en="Top Up Account">Пополнить счет</a>
         </div>
     </div>
 
-    <div class="card-info" th:if="${!isAdminOrManager and loan.status == 'Ожидает подтверждения'}"
-         style="border:2px solid #f59e0b; background:#fffbeb;">
-        <h3 style="color:#f59e0b; border-bottom:none;"
+    <div class="card-info panel-warning" th:if="${!isAdminOrManager and loan.status == 'Ожидает подтверждения'}">
+        <h3 class="text-warning border-b-0"
             data-ru="Требуется ваше подтверждение" data-en="Your confirmation is required">
             Требуется ваше подтверждение
         </h3>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px;">
+        <div class="confirm-grid">
             <div class="loan-info-block">
                 <span class="loan-info-label" data-ru="Вы запросили" data-en="You requested">Вы запросили</span>
                 <span class="loan-info-value" th:text="${loan.amount} + ' ₽'"></span>
@@ -338,18 +267,16 @@
                       th:text="${#numbers.formatDecimal(loan.agreedAmount + loan.agreedAmount * loan.rate / 100, 1, 2)} + ' ₽'"></span>
             </div>
         </div>
-        <div class="actions" style="gap:12px;">
-            <form th:action="@{/client/loans/{id}/confirm(id=${loan.id})}" method="post" style="flex:1;">
+        <div class="actions gap-12">
+            <form class="flex-1" th:action="@{/client/loans/{id}/confirm(id=${loan.id})}" method="post">
                 <input type="hidden" name="agree" value="true">
-                <button type="submit" class="btn-green"
-                        style="width:100%; padding:16px; font-size:14px;"
+                <button type="submit" class="btn-green w-100 p-16 fs-14"
                         onclick="return openConfirmForm(this.form, 'Согласиться с условиями займа?', 'Согласен')"
                         data-ru="Согласен" data-en="Agree">Согласен</button>
             </form>
-            <form th:action="@{/client/loans/{id}/confirm(id=${loan.id})}" method="post" style="flex:1;">
+            <form class="flex-1" th:action="@{/client/loans/{id}/confirm(id=${loan.id})}" method="post">
                 <input type="hidden" name="agree" value="false">
-                <button type="submit" class="btn-red"
-                        style="width:100%; padding:16px; font-size:14px;"
+                <button type="submit" class="btn-red w-100 p-16 fs-14"
                         onclick="return openConfirmForm(this.form, 'Отказаться от условий займа?', 'Не согласен')"
                         data-ru="Не согласен" data-en="Disagree">Не согласен</button>
             </form>

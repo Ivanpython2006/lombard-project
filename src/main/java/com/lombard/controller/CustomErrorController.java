@@ -22,7 +22,7 @@ public class CustomErrorController implements ErrorController {
                 return "error/403";
             }
         }
-        // Если ошибка 500 или другая — показываем общую страницу error.html
+        // Если ошибка 500 или другая то будет общая страница error.html
         return "error";
     }
 }

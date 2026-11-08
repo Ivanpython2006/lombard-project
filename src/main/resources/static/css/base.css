@@ -1,3 +1,6 @@
+/* пока страница переводится на английский body скрыт чтобы не мигал русский текст */
+html.i18n-loading body { visibility: hidden !important; }
+
 /* BASE - сброс шрифты переменные body */
 
 * {

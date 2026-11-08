@@ -1,87 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Залоги</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .item-number-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            background: #e6faf5;
-            border: 2px solid #00b894;
-            color: #00a383;
-            font-weight: 800;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            font-family: 'Inter', monospace;
-        }
-        body.theme-dark .item-number-badge {
-            background: #0a2e27;
-            border-color: #00d4a8;
-            color: #00d4a8;
-        }
-
-        .loan-link-soft {
-            display: inline-block;
-            padding: 4px 10px;
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
-            color: #666;
-            border: 1px solid #ccc;
-            background: #f8f9fa;
-            transition: all 0.15s ease;
-        }
-        .loan-link-soft:hover { color: #00b894; border-color: #00b894; background: #fff; }
-        body.theme-dark .loan-link-soft { color: #999; border-color: #2a2a2a; background: #1a1a1a; }
-        body.theme-dark .loan-link-soft:hover { color: #00d4a8; border-color: #00d4a8; background: #121212; }
-
-        .client-cell {
-            display: flex; align-items: center; justify-content: center;
-            gap: 6px; flex-wrap: nowrap;
-        }
-        .client-cell .client-name { font-size: 13px; color: #000; white-space: nowrap; }
-        .client-cell .client-number { font-size: 11px; color: #00b894; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
-        body.theme-dark .client-cell .client-name { color: #e0e0e0; }
-        body.theme-dark .client-cell .client-number { color: #00d4a8; }
-
-        /* Красивая заглушка "Нет фото" в модалке */
-        .modal-photo-empty {
-            width: 100%;
-            height: 340px;
-            background: #f8f9fa;
-            border: 2px dashed #d0d0d0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            color: #999;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-        .modal-photo-empty svg {
-            color: #bbb;
-            stroke-width: 1.5;
-        }
-        body.theme-dark .modal-photo-empty {
-            background: #1e1e1e;
-            border-color: #2a2a2a;
-            color: #666;
-        }
-        body.theme-dark .modal-photo-empty svg { color: #444; }
-    </style>
 </head>
-<body>
+<body class="page-collaterals">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
-        <h2 style="margin-bottom:0;" data-ru="Все залоги" data-en="All Collaterals">Все залоги</h2>
+    <div class="page-toolbar">
+        <h2 class="mb-0" data-ru="Все залоги" data-en="All Collaterals">Все залоги</h2>
         <a href="/collaterals/export" class="btn" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</a>
     </div>
 
@@ -223,7 +153,7 @@
             <button type="button" class="modal-close" onclick="closeItemModal()">&times;</button>
         </div>
         <div class="modal-body">
-            <div id="modalPhotoContainer" style="margin-bottom:20px;"></div>
+            <div class="mb-20" id="modalPhotoContainer"></div>
             <div class="modal-row"><div class="modal-label" data-ru="Номер вещи" data-en="Item Number">Номер вещи</div><div class="modal-value"><span id="modalNumber" class="item-number-badge">-</span></div></div>
             <div class="modal-row"><div class="modal-label" data-ru="Описание" data-en="Description">Описание</div><div class="modal-value" id="modalDesc">-</div></div>
             <div class="modal-row"><div class="modal-label" data-ru="Оценка" data-en="Valuation">Оценка</div><div class="modal-value" id="modalPrice">-</div></div>
@@ -233,10 +163,9 @@
             <div class="modal-row"><div class="modal-label" data-ru="Email" data-en="Email">Email</div><div class="modal-value" id="modalEmail">-</div></div>
             <div class="modal-row"><div class="modal-label" data-ru="Телефон" data-en="Phone">Телефон</div><div class="modal-value" id="modalPhone">-</div></div>
 
-            <div style="margin-top:24px; text-align:center;">
-                <a id="modalEditBtn" href="#" class="action-btn approve"
-                   data-ru="Редактировать" data-en="Edit"
-                   style="display:inline-block; padding:12px 28px; font-size:13px;">Редактировать</a>
+            <div class="mt-24 text-center">
+                <a id="modalEditBtn" href="#" class="action-btn approve d-inline-block p-12-28 fs-13"
+                   data-ru="Редактировать" data-en="Edit">Редактировать</a>
             </div>
         </div>
     </div>
@@ -292,13 +221,6 @@
     function buildSliderHtml(photos) {
         if (!photos || photos.length === 0) {
             return '<div class="modal-photo-empty">'
-                 + '<svg viewBox="0 0 24 24" width="48" height="48" '
-                 +   'fill="none" stroke="currentColor" stroke-width="1.5" '
-                 +   'stroke-linecap="round" stroke-linejoin="round">'
-                 +   '<rect x="3" y="6" width="18" height="14" rx="2"/>'
-                 +   '<circle cx="12" cy="13" r="3.5"/>'
-                 +   '<path d="M8 6l1.5-2h5L16 6"/>'
-                 + '</svg>'
                  + '<span data-ru="Нет фото" data-en="No photo">Нет фото</span>'
                  + '</div>';
         }
@@ -308,7 +230,7 @@
 
         let html = '<div class="photo-slider" data-count="' + photos.length + '" '
                  + 'data-viewer-info="' + infoAttr + '">';
-        html += '<div class="photo-slider-inner" style="height:340px;">';
+        html += '<div class="photo-slider-inner h-340">';
 
         for (let i = 0; i < photos.length; i++) {
             const cls = (i === 0) ? 'photo-slider-img active' : 'photo-slider-img';
@@ -390,7 +312,7 @@
         const loanEl = document.getElementById('modalLoan');
         if (loanId && loanId !== 'null' && loanId !== '') {
             const label = loanNumber && loanNumber !== 'null' ? loanNumber : ('#' + loanId);
-            loanEl.innerHTML = '<a href="/loans/' + loanId + '" style="color:#666; font-weight:600; text-decoration:none; border-bottom: 1px dashed #999;">' + escapeHtml(label) + '</a>';
+            loanEl.innerHTML = '<a class="link-dashed" href="/loans/' + loanId + '">' + escapeHtml(label) + '</a>';
         } else {
             loanEl.textContent = '-';
         }

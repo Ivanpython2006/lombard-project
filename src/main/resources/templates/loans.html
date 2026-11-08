@@ -1,75 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title data-ru="Займы" data-en="Loans">Займы</title>
     <th:block th:replace="~{fragments/head :: styles}"></th:block>
-    <style>
-        .loan-number-link {
-            display: inline-block;
-            padding: 4px 10px;
-            font-size: 13px;
-            font-weight: 800;
-            color: #00b894;
-            text-decoration: none;
-            border: 1px solid #00b894;
-            background: #e6faf5;
-            letter-spacing: 0.3px;
-            transition: all 0.15s ease;
-        }
-        .loan-number-link:hover { background: #00b894; color: #fff; }
-        body.theme-dark .loan-number-link { background: #0a2e27; color: #00d4a8; border-color: #00d4a8; }
-        body.theme-dark .loan-number-link:hover { background: #00d4a8; color: #111; }
-
-        .client-cell {
-            display: flex; align-items: center; justify-content: center;
-            gap: 6px; flex-wrap: nowrap;
-        }
-        .client-cell .client-link {
-            color: #000; text-decoration: none;
-            border-bottom: 1px dashed #bbb;
-            transition: all 0.15s ease;
-            font-size: 14px; font-weight: 700; white-space: nowrap;
-        }
-        .client-cell .client-link:hover { color: #00b894; border-bottom-color: #00b894; border-bottom-style: solid; }
-        .client-cell .client-number { font-size: 12px; color: #00b894; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
-        body.theme-dark .client-cell .client-link { color: #e0e0e0; border-bottom-color: #555; }
-        body.theme-dark .client-cell .client-link:hover { color: #00d4a8; border-bottom-color: #00d4a8; }
-        body.theme-dark .client-cell .client-number { color: #00d4a8; }
-
-        .item-cell {
-            display: flex; align-items: center; justify-content: center;
-            gap: 6px; flex-wrap: nowrap;
-        }
-        .item-cell .item-link {
-            color: #000; text-decoration: none;
-            border-bottom: 1px dashed #bbb;
-            transition: all 0.15s ease;
-            font-size: 14px; font-weight: 700; white-space: nowrap;
-            background: none; border-top: none; border-left: none; border-right: none;
-            padding: 0; cursor: pointer; font-family: inherit;
-        }
-        .item-cell .item-link:hover { color: #00b894; border-bottom-color: #00b894; border-bottom-style: solid; }
-        .item-cell .item-number { font-size: 12px; color: #00b894; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
-        body.theme-dark .item-cell .item-link { color: #e0e0e0; border-bottom-color: #555; }
-        body.theme-dark .item-cell .item-link:hover { color: #00d4a8; border-bottom-color: #00d4a8; }
-        body.theme-dark .item-cell .item-number { color: #00d4a8; }
-
-        /* Красивое троеточие в поиске */
-        .filter-bar input[type="text"] {
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-    </style>
 </head>
-<body>
+<body class="page-loans">
 
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="main-content with-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
-        <h2 style="margin-bottom:0;" data-ru="Все займы" data-en="All Loans">Все займы</h2>
+    <div class="page-toolbar">
+        <h2 class="mb-0" data-ru="Все займы" data-en="All Loans">Все займы</h2>
         <a href="/loans/export" class="btn" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</a>
     </div>
 
@@ -172,18 +114,16 @@
                 <td th:text="${loan.rate != null} ? ${loan.rate} + ' %' : '-'"></td>
                 <td th:text="${loan.dueDate} ?: '-'"></td>
                 <td>
-                    <div style="display:flex; justify-content:center; align-items:center;">
-                        <form th:if="${isAdminOrManager}"
+                    <div class="d-flex justify-center items-center">
+                        <form class="d-inline m-0" th:if="${isAdminOrManager}"
                               th:action="@{/loans/{id}/delete(id=${loan.id})}"
                               method="post"
-                              style="display:inline; margin:0;"
                               onsubmit="return openConfirmForm(this, 'Удалить этот заем?', 'Удалить')">
                             <input type="hidden" name="page" th:value="${currentPage}">
                             <input type="hidden" name="sort" th:value="${sort}">
                             <input type="hidden" name="status" th:value="${status}">
                             <input type="hidden" name="clientName" th:value="${clientName}">
-                            <button type="submit" class="btn-red"
-                                    style="padding:6px 14px; font-size:12px;"
+                            <button type="submit" class="btn-red btn-sm"
                                     data-ru="Удалить" data-en="Delete">Удалить</button>
                         </form>
                     </div>
