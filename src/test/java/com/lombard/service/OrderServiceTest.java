@@ -172,7 +172,7 @@ class OrderServiceTest {
 
         orderService.changeStatus(1L, "Отменён");
 
-        verify(accountService).deposit(eq(1L), eq(new BigDecimal("1000")), any());
+        verify(accountService).refund(eq(1L), eq(new BigDecimal("1000")), any());
         assertEquals("На продаже", loan.getStatus());
         assertEquals("Отменён", order.getStatus());
     }
@@ -185,7 +185,7 @@ class OrderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         assertThrows(IllegalStateException.class, () -> orderService.changeStatus(1L, "Отменён"));
-        verify(accountService, never()).deposit(any(), any(), any());
+        verify(accountService, never()).refund(any(), any(), any());
         assertEquals("Доставлен", order.getStatus());
     }
 }

@@ -7,10 +7,12 @@ import com.lombard.model.Loan;
 import com.lombard.model.User;
 import com.lombard.service.*;
 import com.lombard.util.CsvExporter;
+import com.lombard.util.TransactionUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -260,7 +262,8 @@ public class ClientController {
     }
 
     @PostMapping("/loans/new")
-    public String createLoan(@Valid @ModelAttribute Loan loan,
+    @Transactional
+    public String createLoan(@Valid @ModelAttribute("loan") Loan loanForm,
                              BindingResult result,
                              @RequestParam String collateralName,
                              @RequestParam String collateralDescription,
@@ -286,7 +289,8 @@ public class ClientController {
             return "redirect:/client/loans";
         }
 
-        loan.setRate(null);
+        Loan loan = new Loan();
+        loan.setAmount(loanForm.getAmount());
         loan.setClient(client);
         loan.setStatus("В ожидании");
         loan.setCreatedDate(LocalDate.now());
@@ -304,6 +308,7 @@ public class ClientController {
             try {
                 collateralService.appendPhotos(collateral, photos, "item_" + collateral.getId());
             } catch (RuntimeException e) {
+                TransactionUtils.rollbackCurrent();
                 ra.addFlashAttribute("error", e.getMessage());
                 return "redirect:/client/loans/new";
             }
@@ -555,13 +560,6 @@ public class ClientController {
             return "redirect:/client/profile";
         }
 
-        client.setLastName(lName);
-        client.setFirstName(fName);
-        client.setMiddleName(mName.isEmpty() ? null : mName);
-        client.setEmail(email);
-        client.setPhone(phone);
-        clientService.save(client);
-
         boolean passwordChangeRequested = newPassword != null && !newPassword.isBlank();
 
         if (passwordChangeRequested) {
@@ -581,6 +579,16 @@ public class ClientController {
                 ra.addFlashAttribute("error", "Новый пароль и подтверждение не совпадают");
                 return "redirect:/client/profile";
             }
+        }
+
+        client.setLastName(lName);
+        client.setFirstName(fName);
+        client.setMiddleName(mName.isEmpty() ? null : mName);
+        client.setEmail(email);
+        client.setPhone(phone);
+        clientService.save(client);
+
+        if (passwordChangeRequested) {
             userService.changePassword(auth.getName(), newPassword);
             ra.addFlashAttribute("success", "Профиль и пароль обновлены");
         } else {

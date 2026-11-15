@@ -150,4 +150,14 @@ class AdminClientControllerTest extends ControllerTestBase {
 
         verify(clientService, never()).save(any());
     }
+
+    @Test
+    void edit_emptyPhone_notSaved() throws Exception {
+        mvc.perform(editForm("Иванов Иван", ""))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/clients/1/edit"))
+                .andExpect(flash().attribute("error", "Телефон обязателен"));
+
+        verify(clientService, never()).save(any());
+    }
 }

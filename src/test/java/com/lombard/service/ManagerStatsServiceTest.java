@@ -112,4 +112,24 @@ class ManagerStatsServiceTest {
         h.setAction(action);
         return h;
     }
+
+    @Test
+    void statsAllTime_realHistoryFormat_countsCorrectly() {
+        List<LoanHistory> actions = List.of(
+                createHistory("Ожидает подтверждения. Оценка: 5000 руб., сумма: 2500 руб., ставка: 12%"),
+                createHistory("Статус: «Выдан» -> «Закрыт»"),
+                createHistory("Статус: «В ожидании» -> «Отклонен»"),
+                createHistory("Менеджер отозвал предложение по заявке"),
+                createHistory("Статус: «На складе» -> «На продаже»")
+        );
+        when(loanHistoryRepository.findByChangedByOrderByChangedAtDesc("user")).thenReturn(actions);
+
+        Map<String, Object> stats = managerStatsService.getStatsAllTime("user");
+
+        assertThat(stats.get("approved")).isEqualTo(1);
+        assertThat(stats.get("closed")).isEqualTo(1);
+        assertThat(stats.get("issued")).isEqualTo(0);
+        assertThat(stats.get("rejected")).isEqualTo(2);
+        assertThat(stats.get("sold")).isEqualTo(1);
+    }
 }

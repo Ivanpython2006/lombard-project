@@ -37,10 +37,9 @@ public class LoanController {
     private static final int PAGE_SIZE = 10;
 
     private static final Map<String, Set<String>> ALLOWED_TRANSITIONS = Map.ofEntries(
-            Map.entry("В ожидании", Set.of("Одобрен", "Отклонен", "Ожидает подтверждения", "Отменена")),
-            Map.entry("Одобрен", Set.of("Выдан", "Отклонен", "Отменена")),
-            Map.entry("Ожидает подтверждения", Set.of("Выдан", "Отклонен", "Отменена")),
-            Map.entry("Выдан", Set.of("Закрыт", "Просрочен", "На продаже", "На складе")),
+            Map.entry("В ожидании", Set.of("Отклонен", "Отменена")),
+            Map.entry("Ожидает подтверждения", Set.of("Отклонен", "Отменена")),
+            Map.entry("Выдан", Set.of("Закрыт", "Просрочен")),
             Map.entry("Просрочен", Set.of("Закрыт", "На складе", "На продаже")),
             Map.entry("На складе", Set.of("На продаже", "Закрыт")),
             Map.entry("На продаже", Set.of("Куплен", "На складе")),
@@ -193,10 +192,12 @@ public class LoanController {
     @GetMapping("/{id}")
     public String loanDetails(@PathVariable Long id, Model model, Authentication auth,
                               RedirectAttributes ra) {
+        boolean isAdminOrManager = isAdminOrManager(auth);
+        String backUrl = isAdminOrManager ? "redirect:/loans" : "redirect:/client/loans";
         Loan loan = loanService.findById(id);
         if (loan == null) {
             ra.addFlashAttribute("error", "Заем не найден");
-            return "redirect:/loans";
+            return backUrl;
         }
 
         // Чтобы Thymeleaf не падал если photoUrls = null
@@ -206,14 +207,13 @@ public class LoanController {
             });
         }
 
-        boolean isAdminOrManager = isAdminOrManager(auth);
         if (!isAdminOrManager) {
             User user = userService.findByUsername(auth.getName());
             Client client = (user == null) ? null : clientService.findByUserId(user.getId());
             if (loan.getClient() == null || client == null
                     || !loan.getClient().getId().equals(client.getId())) {
                 ra.addFlashAttribute("error", "Заем не найден");
-                return "redirect:/loans";
+                return backUrl;
             }
         }
         model.addAttribute("loan", loan);
@@ -388,6 +388,23 @@ public class LoanController {
             return "redirect:/loans";
         }
 
+        BigDecimal estimated = loan.getCollaterals() != null && !loan.getCollaterals().isEmpty()
+                ? loan.getCollaterals().get(0).getEstimatedPrice() : null;
+        if (amount != null && estimated != null && amount.compareTo(estimated) > 0) {
+            ra.addFlashAttribute("error", "Сумма займа не может быть больше оценки вещи");
+            return "redirect:/loans/" + id + "/edit";
+        }
+        if (dueDate != null && !dueDate.isBlank()) {
+            try {
+                LocalDate parsedDue = LocalDate.parse(dueDate);
+                if (loan.getCreatedDate() != null && parsedDue.isBefore(loan.getCreatedDate())) {
+                    ra.addFlashAttribute("error", "Дата возврата не может быть раньше даты создания займа");
+                    return "redirect:/loans/" + id + "/edit";
+                }
+            } catch (java.time.format.DateTimeParseException ignored) {
+            }
+        }
+
         // после одобрения правится одобренная сумма, до него - запрошенная
         if (amount != null && amount.compareTo(BigDecimal.ZERO) > 0) {
             if (loan.getAgreedAmount() != null) loan.setAgreedAmount(amount);
@@ -476,13 +493,6 @@ public class LoanController {
                 case "Закрыт":
                     notificationService.notify(loan.getClient(), "LOAN_CLOSED", "SUCCESS",
                             loan.getLoanNumber(), itemName);
-                    break;
-                case "Выдан":
-                    notificationService.notify(loan.getClient(), "LOAN_ISSUED", "SUCCESS",
-                            loan.getLoanNumber(),
-                            itemName,
-                            loan.getTotalToReturn().toPlainString(),
-                            String.valueOf(loan.getDueDate()));
                     break;
                 case "На продаже":
                     notificationService.notify(loan.getClient(), "LOAN_ON_SALE", "WARNING",

@@ -124,4 +124,16 @@ class LoanTest {
 
         assertNotNull(l.getCreatedDate());
     }
+
+    @Test
+    void isOverdue_overdueStatus_returnsTrue() {
+        Loan l = issued(-40);
+        l.setStatus("Просрочен");
+        assertTrue(l.isOverdue());
+    }
+
+    @Test
+    void isOverdue_issuedNotDue_returnsFalse() {
+        assertFalse(issued(5).isOverdue());
+    }
 }

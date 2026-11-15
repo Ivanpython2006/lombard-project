@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -267,7 +268,11 @@ class ClientControllerTest extends ControllerTestBase {
                         .param("currentPassword", "wrong")
                         .param("newPassword", "newpass")
                         .param("confirmPassword", "newpass"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", "Текущий пароль неверный"));
+
+        verify(clientService, never()).save(any());
+        verify(userService, never()).changePassword(any(), any());
     }
 
     @Test
@@ -367,6 +372,63 @@ class ClientControllerTest extends ControllerTestBase {
                 .andExpect(status().is3xxRedirection());
 
         verify(loanService).save(any(Loan.class));
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "user")
+    void createLoan_foreignFieldsInForm_ignored() throws Exception {
+        User u = new User(); u.setId(1L);
+        Client c = new Client(); c.setId(1L); c.setUser(u);
+        when(userService.findByUsername("user")).thenReturn(u);
+        when(clientService.findByUserId(1L)).thenReturn(c);
+
+        mvc.perform(post("/client/loans/new").with(csrf())
+                        .param("id", "99")
+                        .param("loanNumber", "L99")
+                        .param("agreedAmount", "500000")
+                        .param("clientApproved", "true")
+                        .param("amount", "1000")
+                        .param("months", "5")
+                        .param("collateralName", "Phone")
+                        .param("collateralDescription", "Good"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/client/loans"));
+
+        ArgumentCaptor<Loan> captor = ArgumentCaptor.forClass(Loan.class);
+        verify(loanService).save(captor.capture());
+        Loan saved = captor.getValue();
+        assertEquals(null, saved.getId());
+        assertEquals(null, saved.getLoanNumber());
+        assertEquals(null, saved.getAgreedAmount());
+        assertEquals(null, saved.getClientApproved());
+        assertEquals(0, new BigDecimal("1000").compareTo(saved.getAmount()));
+        assertEquals("В ожидании", saved.getStatus());
+        assertEquals(c, saved.getClient());
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "user")
+    void createLoan_badPhoto_returnsFormWithoutNotifications() throws Exception {
+        User u = new User(); u.setId(1L);
+        Client c = new Client(); c.setId(1L); c.setUser(u);
+        when(userService.findByUsername("user")).thenReturn(u);
+        when(clientService.findByUserId(1L)).thenReturn(c);
+        doThrow(new IllegalArgumentException("Только JPG и PNG"))
+                .when(collateralService).appendPhotos(any(), any(), any());
+
+        MockMultipartFile photo = new MockMultipartFile("photos", "test.gif", "image/gif", "data".getBytes());
+
+        mvc.perform(multipart("/client/loans/new").file(photo).with(csrf())
+                        .param("amount", "1000")
+                        .param("months", "5")
+                        .param("collateralName", "Phone")
+                        .param("collateralDescription", "Good"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/client/loans/new"))
+                .andExpect(flash().attribute("error", "Только JPG и PNG"));
+
+        verify(notificationService, never()).notify(any(), any(), any(), any(String[].class));
+        verify(notificationService, never()).notifyStaff(any(), any(), any(String[].class));
     }
 
     // если пароль не меняют поля пароля пустые

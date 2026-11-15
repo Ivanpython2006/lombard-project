@@ -52,7 +52,7 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void changeStatus_redirects() throws Exception {
         mvc.perform(post("/loans/" + loan.getId() + "/status").with(csrf())
-                        .param("status", "Одобрен"))
+                        .param("status", "Отклонен"))
                 .andExpect(status().is3xxRedirection());
     }
 
@@ -82,7 +82,7 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
                 .param("approvedAmount", "1000")).andExpect(status().is3xxRedirection());
 
         mvc.perform(post("/loans/" + loan.getId() + "/status").with(csrf())
-                .param("status", "Одобрен")).andExpect(status().is3xxRedirection());
+                .param("status", "Отклонен")).andExpect(status().is3xxRedirection());
     }
 
     @Test
@@ -126,12 +126,12 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void changeStatus_toApproved_savedToDatabase() throws Exception {
+    void changeStatus_toRejected_savedToDatabase() throws Exception {
         mvc.perform(post("/loans/" + loan.getId() + "/status").with(csrf())
-                        .param("status", "Одобрен"))
+                        .param("status", "Отклонен"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("success"));
-        assertEquals("Одобрен", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
+        assertEquals("Отклонен", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
     }
 
     @Test

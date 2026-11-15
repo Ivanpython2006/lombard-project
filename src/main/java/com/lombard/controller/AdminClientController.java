@@ -132,7 +132,12 @@ public class AdminClientController {
             ra.addFlashAttribute("error", nameError);
             return "redirect:/admin/clients/" + id + "/edit";
         }
-        if (phone != null && !phone.isEmpty() && !phone.matches("^\\+7\\d{10}$")) {
+        phone = phone != null ? phone.trim() : "";
+        if (phone.isEmpty()) {
+            ra.addFlashAttribute("error", "Телефон обязателен");
+            return "redirect:/admin/clients/" + id + "/edit";
+        }
+        if (!phone.matches("^\\+7\\d{10}$")) {
             ra.addFlashAttribute("error", "Телефон в формате +7XXXXXXXXXX");
             return "redirect:/admin/clients/" + id + "/edit";
         }

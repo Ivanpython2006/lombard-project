@@ -107,4 +107,23 @@ class AccountServiceTest {
         when(accountRepository.findByClientIdForUpdate(1L)).thenReturn(Optional.of(testAccount));
         assertThrows(IllegalArgumentException.class, () -> accountService.purchase(1L, new BigDecimal("5000"), null));
     }
+
+    @Test
+    void refund_validAmount_increasesBalanceWithRefundType() {
+        when(accountRepository.findByClientIdForUpdate(1L)).thenReturn(Optional.of(testAccount));
+        accountService.refund(1L, new BigDecimal("200"), "Возврат");
+        verify(accountRepository).save(argThat(a -> a.getBalance().compareTo(new BigDecimal("1200")) == 0));
+        verify(accountTransactionRepository).save(argThat(t -> "REFUND".equals(t.getType())));
+    }
+
+    @Test
+    void refund_zeroAmount_throwsException() {
+        assertThrows(IllegalArgumentException.class, () -> accountService.refund(1L, BigDecimal.ZERO, "x"));
+    }
+
+    @Test
+    void refund_accountNotFound_throwsException() {
+        when(accountRepository.findByClientIdForUpdate(1L)).thenReturn(Optional.empty());
+        assertThrows(IllegalStateException.class, () -> accountService.refund(1L, BigDecimal.TEN, "x"));
+    }
 }

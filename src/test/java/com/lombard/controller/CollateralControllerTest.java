@@ -3,6 +3,7 @@ package com.lombard.controller;
 import com.lombard.model.*;
 import com.lombard.model.Collateral;
 import com.lombard.service.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -111,5 +112,18 @@ class CollateralControllerTest extends ControllerTestBase {
                         .param("photoUrl", "/uploads/test.jpg"))
                 .andExpect(status().is3xxRedirection());
         verify(collateralService).removePhoto(c, "/uploads/test.jpg");
+    }
+
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void edit_emptyPrice_keepsOldPrice() throws Exception {
+        Collateral c = new Collateral(); c.setId(1L); c.setEstimatedPrice(new BigDecimal("5000"));
+        when(collateralService.findById(1L)).thenReturn(c);
+
+        mvc.perform(post("/collaterals/1/edit").with(csrf()).param("name", "Часы"))
+                .andExpect(status().is3xxRedirection());
+
+        verify(collateralService).save(c);
+        org.junit.jupiter.api.Assertions.assertEquals(0, new BigDecimal("5000").compareTo(c.getEstimatedPrice()));
     }
 }

@@ -119,9 +119,10 @@ public class Loan {
 
     // проверка просрочки (только для активных займов)
     public boolean isOverdue() {
-        return "Выдан".equals(status)
+        return "Просрочен".equals(status)
+                || ("Выдан".equals(status)
                 && dueDate != null
-                && dueDate.isBefore(LocalDate.now());
+                && dueDate.isBefore(LocalDate.now()));
     }
 
     // сколько дней осталось до возврата

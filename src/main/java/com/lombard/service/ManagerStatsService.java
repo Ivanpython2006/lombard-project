@@ -37,12 +37,15 @@ public class ManagerStatsService {
 
         for (LoanHistory h : actions) {
             String a = h.getAction() != null ? h.getAction().toLowerCase() : "";
-            if (a.startsWith("одобрено")) approved++;
-            else if (a.startsWith("статус") && a.contains("отклонен")) rejected++;
-            else if (a.startsWith("статус") && a.contains("выдан")) issued++;
-            else if (a.startsWith("статус") && a.contains("закрыт")) closed++;
+            String target = a.contains("->") ? a.substring(a.lastIndexOf("->")) : a;
+            if (a.startsWith("одобрено") || a.startsWith("ожидает подтверждения")) approved++;
+            else if (a.startsWith("менеджер отозвал")) rejected++;
+            else if (a.startsWith("статус") && target.contains("отклонен")) rejected++;
+            else if (a.startsWith("статус") && target.contains("выдан")) issued++;
+            else if (a.startsWith("статус") && target.contains("закрыт")) closed++;
             else if (a.startsWith("продлён") || a.startsWith("продлен")) extended++;
-            else if (a.startsWith("статус") && a.contains("продан")) sold++;
+            else if (a.startsWith("статус") && (target.contains("продан")
+                    || target.contains("на продаже") || target.contains("куплен"))) sold++;
         }
 
         Map<String, Object> stats = new HashMap<>();

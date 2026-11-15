@@ -127,7 +127,7 @@ public class OrderService {
         if ("Отменён".equals(newStatus)) {
             if (order.getClient() != null && order.getTotalAmount() != null
                     && order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
-                accountService.deposit(order.getClient().getId(), order.getTotalAmount(),
+                accountService.refund(order.getClient().getId(), order.getTotalAmount(),
                         "Возврат за отмененный заказ " + order.getOrderNumber());
             }
             for (OrderItem item : order.getItems()) {

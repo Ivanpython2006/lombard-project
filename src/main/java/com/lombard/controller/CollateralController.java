@@ -194,7 +194,9 @@ public class CollateralController {
 
         collateral.setName(name.trim());
         collateral.setDescription(description != null ? description.trim() : null);
-        collateral.setEstimatedPrice(estimatedPrice);
+        if (estimatedPrice != null) {
+            collateral.setEstimatedPrice(estimatedPrice);
+        }
         collateralService.save(collateral);
 
         ra.addFlashAttribute("success", "Залог обновлён");
