@@ -82,10 +82,12 @@ public class FileStorageService {
     public void delete(String photoUrl) {
         if (photoUrl == null || !photoUrl.startsWith("/uploads/")) return;
         try {
-            String filename = photoUrl.substring("/uploads/".length());
-            Path target = Paths.get(uploadDir).resolve(filename);
+            Path dir = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Path target = dir.resolve(photoUrl.substring("/uploads/".length())).normalize();
+            // удаляю только файлы прямо в папке загрузок: путь вида "/uploads/../pom.xml" игнорирую
+            if (!dir.equals(target.getParent())) return;
             Files.deleteIfExists(target);
-        } catch (IOException e) {
+        } catch (IOException | InvalidPathException e) {
             System.err.println("Не удалось удалить файл " + photoUrl + ": " + e.getMessage());
         }
     }

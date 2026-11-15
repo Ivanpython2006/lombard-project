@@ -7,7 +7,9 @@
    Windows: set DB_PASSWORD=ваш_пароль
    Linux/Mac: export DB_PASSWORD=ваш_пароль
 4) Убедитесь, что у вас установлена Java 17. Запустите проект из корневой папки (где находится pom.xml) командой:
-   mvn spring-boot:run
+   Windows: mvnw spring-boot:run
+   Linux/Mac: sh mvnw spring-boot:run
+   Отдельно устанавливать Maven не нужно: обертка mvnw скачает его сама.
 5) Откройте браузер и перейдите по адресу: http://localhost:8080
 
 Тестовые учетные записи для входа:

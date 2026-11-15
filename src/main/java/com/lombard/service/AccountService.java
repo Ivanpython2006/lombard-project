@@ -58,6 +58,18 @@ public class AccountService {
     }
 
     @Transactional
+    public void refund(Long clientId, BigDecimal amount, String comment) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Сумма возврата должна быть больше 0");
+        }
+        Account account = accountRepository.findByClientIdForUpdate(clientId)
+                .orElseThrow(() -> new IllegalStateException("Счет не найден"));
+        account.setBalance(account.getBalance().add(amount));
+        accountRepository.save(account);
+        txRepository.save(new AccountTransaction(account, amount, "REFUND", comment));
+    }
+
+    @Transactional
     public void withdraw(Long clientId, BigDecimal amount, String comment) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Сумма вывода должна быть больше 0");

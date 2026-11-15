@@ -1,5 +1,6 @@
 package com.lombard.integration;
 
+import com.lombard.config.DataInitializer;
 import com.lombard.model.*;
 import com.lombard.repository.*;
 import java.time.LocalDate;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -52,7 +54,7 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void changeStatus_redirects() throws Exception {
         mvc.perform(post("/loans/" + loan.getId() + "/status").with(csrf())
-                        .param("status", "Одобрен"))
+                        .param("status", "Отклонен"))
                 .andExpect(status().is3xxRedirection());
     }
 
@@ -82,7 +84,7 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
                 .param("approvedAmount", "1000")).andExpect(status().is3xxRedirection());
 
         mvc.perform(post("/loans/" + loan.getId() + "/status").with(csrf())
-                .param("status", "Одобрен")).andExpect(status().is3xxRedirection());
+                .param("status", "Отклонен")).andExpect(status().is3xxRedirection());
     }
 
     @Test
@@ -126,12 +128,12 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void changeStatus_toApproved_savedToDatabase() throws Exception {
+    void changeStatus_toRejected_savedToDatabase() throws Exception {
         mvc.perform(post("/loans/" + loan.getId() + "/status").with(csrf())
-                        .param("status", "Одобрен"))
+                        .param("status", "Отклонен"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("success"));
-        assertEquals("Одобрен", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
+        assertEquals("Отклонен", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
     }
 
     @Test
@@ -167,6 +169,35 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
         mvc.perform(post("/loans/" + loan.getId() + "/withdraw").with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("success"));
+    }
+
+    // кнопка «Отозвать предложение» ведет на отдельный обработчик отзыва, а не на смену статуса
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void loanDetails_awaitingConfirmation_withdrawButtonPostsToWithdraw() throws Exception {
+        loan.setStatus("Ожидает подтверждения");
+        loanRepository.save(loan);
+        mvc.perform(get("/loans/" + loan.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/loans/" + loan.getId() + "/withdraw")));
+    }
+
+    // старый заем в статусе «Одобрен» при запуске переводится в «Ожидает подтверждения»
+    // и дальше с ним можно работать как обычно (например, отозвать предложение)
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void legacyApprovedLoan_migratedOnStartup_canBeWithdrawn() throws Exception {
+        loan.setStatus("Одобрен");
+        loanRepository.save(loan);
+
+        new DataInitializer().migrateLegacyApprovedLoans(loanRepository).run();
+
+        assertEquals("Ожидает подтверждения",
+                loanRepository.findById(loan.getId()).orElseThrow().getStatus());
+        mvc.perform(post("/loans/" + loan.getId() + "/withdraw").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("success"));
+        assertEquals("Отклонен", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.lombard.service;
 
+import com.lombard.model.Loan;
 import com.lombard.model.LoanHistory;
 import com.lombard.repository.LoanHistoryRepository;
 import org.springframework.stereotype.Service;
@@ -8,8 +9,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class ManagerStatsService {
@@ -34,16 +37,30 @@ public class ManagerStatsService {
     // Считает статистику по списку действий
     private Map<String, Object> buildStats(List<LoanHistory> actions) {
         int approved = 0, rejected = 0, issued = 0, closed = 0, extended = 0, sold = 0;
+        // заем выдается, когда клиент соглашается с условиями, - выдачу засчитываю менеджеру,
+        // который одобрил заявку (каждый заем один раз, даже если одобрение записано дважды)
+        Set<Long> issuedAfterApproval = new HashSet<>();
 
         for (LoanHistory h : actions) {
             String a = h.getAction() != null ? h.getAction().toLowerCase() : "";
-            if (a.startsWith("одобрено")) approved++;
-            else if (a.startsWith("статус") && a.contains("отклонен")) rejected++;
-            else if (a.startsWith("статус") && a.contains("выдан")) issued++;
-            else if (a.startsWith("статус") && a.contains("закрыт")) closed++;
+            String target = a.contains("->") ? a.substring(a.lastIndexOf("->")) : a;
+            if (a.startsWith("одобрено") || a.startsWith("ожидает подтверждения")) {
+                approved++;
+                Loan loan = h.getLoan();
+                if (loan != null && loan.getId() != null && Boolean.TRUE.equals(loan.getClientApproved())) {
+                    issuedAfterApproval.add(loan.getId());
+                }
+            }
+            else if (a.startsWith("менеджер отозвал")) rejected++;
+            else if (a.startsWith("статус") && target.contains("отклонен")) rejected++;
+            // старые записи: раньше статус «Выдан» менеджер ставил сам
+            else if (a.startsWith("статус") && target.contains("выдан")) issued++;
+            else if (a.startsWith("статус") && target.contains("закрыт")) closed++;
             else if (a.startsWith("продлён") || a.startsWith("продлен")) extended++;
-            else if (a.startsWith("статус") && a.contains("продан")) sold++;
+            else if (a.startsWith("статус") && (target.contains("продан")
+                    || target.contains("на продаже") || target.contains("куплен"))) sold++;
         }
+        issued += issuedAfterApproval.size();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("total", actions.size());

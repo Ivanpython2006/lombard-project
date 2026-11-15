@@ -80,6 +80,7 @@ public class SecurityConfig {
                         .requestMatchers("/loans/{id}/status").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/loans/{id}/edit").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/loans/{id}/extend").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/loans/{id}/withdraw").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/loans/{id}/delete").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/loans", "/loans/").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/loans/**").authenticated()

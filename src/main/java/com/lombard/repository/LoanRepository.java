@@ -4,8 +4,10 @@ import com.lombard.model.Loan;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,4 +35,10 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     @Query("SELECT l.createdDate, l.decisionDate FROM Loan l " +
            "WHERE l.decisionDate IS NOT NULL AND l.createdDate IS NOT NULL")
     List<Object[]> findDecisionDates();
+
+    // переводит все займы из одного статуса в другой (перенос старых данных), возвращает число займов
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE Loan l SET l.status = :newStatus WHERE l.status = :oldStatus")
+    int updateStatus(@Param("oldStatus") String oldStatus, @Param("newStatus") String newStatus);
 }

@@ -165,18 +165,9 @@
                class="action-btn"
                data-ru="Редактировать заем" data-en="Edit Loan">Редактировать заем</a>
 
-            <form th:action="@{/loans/{id}/status(id=${loan.id})}" method="post"
-                  th:if="${loan.status == 'Одобрен'}"
-                  onsubmit="return openConfirmForm(this, 'Выдать деньги клиенту?', 'Выдать')">
-                <input type="hidden" name="status" value="Выдан">
-                <button type="submit" class="action-btn issue"
-                        data-ru="Выдать деньги" data-en="Issue Money">Выдать деньги</button>
-            </form>
-
-            <form th:action="@{/loans/{id}/status(id=${loan.id})}" method="post"
+            <form th:action="@{/loans/{id}/withdraw(id=${loan.id})}" method="post"
                   th:if="${loan.status == 'Ожидает подтверждения'}"
                   onsubmit="return openConfirmForm(this, 'Отозвать предложение? Заявка будет отклонена.', 'Отозвать')">
-                <input type="hidden" name="status" value="Отклонен">
                 <button type="submit" class="action-btn reject"
                         data-ru="Отозвать предложение" data-en="Withdraw Offer">Отозвать предложение</button>
             </form>
@@ -187,14 +178,6 @@
                 <input type="hidden" name="status" value="Закрыт">
                 <button type="submit" class="action-btn approve"
                         data-ru="Выкуплено" data-en="Redeemed">Выкуплено</button>
-            </form>
-
-            <form th:action="@{/loans/{id}/status(id=${loan.id})}" method="post"
-                  th:if="${loan.status == 'Выдан'}"
-                  onsubmit="return openConfirmForm(this, 'Выставить залог на продажу?', 'Продать')">
-                <input type="hidden" name="status" value="На продаже">
-                <button type="submit" class="action-btn reject"
-                        data-ru="Продать залог" data-en="Sell Collateral">Продать залог</button>
             </form>
 
             <form th:action="@{/loans/{id}/extend(id=${loan.id})}" method="post"

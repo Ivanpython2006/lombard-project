@@ -112,4 +112,49 @@ class ManagerStatsServiceTest {
         h.setAction(action);
         return h;
     }
+
+    @Test
+    void statsAllTime_realHistoryFormat_countsCorrectly() {
+        List<LoanHistory> actions = List.of(
+                createHistory("Ожидает подтверждения. Оценка: 5000 руб., сумма: 2500 руб., ставка: 12%"),
+                createHistory("Статус: «Выдан» -> «Закрыт»"),
+                createHistory("Статус: «В ожидании» -> «Отклонен»"),
+                createHistory("Менеджер отозвал предложение по заявке"),
+                createHistory("Статус: «На складе» -> «На продаже»")
+        );
+        when(loanHistoryRepository.findByChangedByOrderByChangedAtDesc("user")).thenReturn(actions);
+
+        Map<String, Object> stats = managerStatsService.getStatsAllTime("user");
+
+        assertThat(stats.get("approved")).isEqualTo(1);
+        assertThat(stats.get("closed")).isEqualTo(1);
+        assertThat(stats.get("issued")).isEqualTo(0);
+        assertThat(stats.get("rejected")).isEqualTo(2);
+        assertThat(stats.get("sold")).isEqualTo(1);
+    }
+
+    // заем выдается после согласия клиента: выдача засчитывается менеджеру, который одобрил заявку,
+    // один раз на заем, даже если одобрение записано дважды
+    @Test
+    void statsAllTime_approvedLoanAcceptedByClient_countsIssuedOncePerLoan() {
+        Loan accepted = new Loan(); accepted.setId(1L); accepted.setClientApproved(true);
+        Loan waiting = new Loan(); waiting.setId(2L);
+        List<LoanHistory> actions = List.of(
+                createHistory("Ожидает подтверждения. Оценка: 5000 руб., сумма: 2500 руб., ставка: 12%", accepted),
+                createHistory("Одобрено. Оценка: 5000 руб., сумма: 2500 руб., ставка: 12%", accepted),
+                createHistory("Ожидает подтверждения. Оценка: 3000 руб., сумма: 1000 руб., ставка: 10%", waiting)
+        );
+        when(loanHistoryRepository.findByChangedByOrderByChangedAtDesc("user")).thenReturn(actions);
+
+        Map<String, Object> stats = managerStatsService.getStatsAllTime("user");
+
+        assertThat(stats.get("approved")).isEqualTo(3);
+        assertThat(stats.get("issued")).isEqualTo(1);
+    }
+
+    private LoanHistory createHistory(String action, Loan loan) {
+        LoanHistory h = createHistory(action);
+        h.setLoan(loan);
+        return h;
+    }
 }

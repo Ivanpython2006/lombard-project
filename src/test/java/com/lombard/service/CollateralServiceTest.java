@@ -191,4 +191,15 @@ class CollateralServiceTest {
 
         verifyNoInteractions(fileStorageService, collateralRepository);
     }
+
+    // путь, которого нет среди фото залога, не удаляется с диска (защита от "/uploads/../pom.xml")
+    @Test
+    void removePhoto_foreignUrl_doesNotDeleteFile() {
+        Collateral c = withPhotos(1);
+
+        collateralService.removePhoto(c, "/uploads/../pom.xml");
+
+        assertEquals(1, c.getPhotoUrls().size());
+        verifyNoInteractions(fileStorageService, collateralRepository);
+    }
 }

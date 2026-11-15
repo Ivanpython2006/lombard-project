@@ -80,4 +80,46 @@ class AccountControllerTest extends ControllerTestBase {
 
         mvc.perform(get("/client/account")).andExpect(status().isOk());
     }
+
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "user")
+    void deposit_notANumber_showsError() throws Exception {
+        User u = new User(); u.setId(1L);
+        Client c = new Client(); c.setId(1L);
+        when(userService.findByUsername("user")).thenReturn(u);
+        when(clientService.findByUserId(1L)).thenReturn(c);
+
+        mvc.perform(post("/client/account/deposit").with(csrf()).param("amount", "abc"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/client/account"))
+                .andExpect(flash().attributeExists("error"));
+        verify(accountService, never()).deposit(any(), any(), any());
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "user")
+    void withdraw_commaAmount_parsed() throws Exception {
+        User u = new User(); u.setId(1L);
+        Client c = new Client(); c.setId(1L);
+        when(userService.findByUsername("user")).thenReturn(u);
+        when(clientService.findByUserId(1L)).thenReturn(c);
+
+        mvc.perform(post("/client/account/withdraw").with(csrf()).param("amount", "150,50"))
+                .andExpect(status().is3xxRedirection());
+        verify(accountService).withdraw(eq(1L), eq(new BigDecimal("150.50")), isNull());
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "user")
+    void withdraw_emptyAmount_showsError() throws Exception {
+        User u = new User(); u.setId(1L);
+        Client c = new Client(); c.setId(1L);
+        when(userService.findByUsername("user")).thenReturn(u);
+        when(clientService.findByUserId(1L)).thenReturn(c);
+
+        mvc.perform(post("/client/account/withdraw").with(csrf()).param("amount", " "))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("error"));
+        verify(accountService, never()).withdraw(any(), any(), any());
+    }
 }

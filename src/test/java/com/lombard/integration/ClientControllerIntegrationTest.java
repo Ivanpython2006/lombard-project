@@ -6,7 +6,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -79,5 +82,28 @@ class ClientControllerIntegrationTest extends IntegrationTestBase {
         loanRepository.save(loan);
         mvc.perform(post("/client/loans/" + loan.getId() + "/confirm").with(csrf())
                 .param("agree", "true")).andExpect(status().is3xxRedirection());
+    }
+
+    // заем выдается, когда клиент соглашается с условиями: это видно в истории займа,
+    // а менеджеру, который одобрил заявку, выдача засчитывается в статистике
+    @Test
+    void approveThenClientAgrees_loggedAndCountedAsIssuedForManager() throws Exception {
+        mvc.perform(post("/loans/" + loan.getId() + "/approve").with(csrf())
+                        .with(user("admin").roles("ADMIN"))
+                        .param("rate", "10")
+                        .param("estimatedPrice", "5000")
+                        .param("approvedAmount", "1000"))
+                .andExpect(status().is3xxRedirection());
+
+        mvc.perform(post("/client/loans/" + loan.getId() + "/confirm").with(csrf())
+                        .with(user("client1").roles("CLIENT"))
+                        .param("agree", "true"))
+                .andExpect(status().is3xxRedirection());
+
+        assertEquals("Выдан", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
+        assertTrue(loanHistoryRepository.findByLoanIdOrderByChangedAtDesc(loan.getId()).stream()
+                .anyMatch(h -> "client1".equals(h.getChangedBy())
+                        && h.getAction().startsWith("Клиент согласился")));
+        assertEquals(1, managerStatsService.getStatsAllTime("admin").get("issued"));
     }
 }

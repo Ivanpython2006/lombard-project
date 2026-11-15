@@ -60,7 +60,7 @@ class LoanControllerTest extends ControllerTestBase {
         mvc.perform(post("/loans/1/edit").with(csrf())
                         .param("amount", "1000")
                         .param("rate", "10")
-                        .param("status", "Одобрен")
+                        .param("status", "Отклонен")
                         .param("dueDate", "2026-12-31"))
                 .andExpect(status().is3xxRedirection());
 
@@ -140,11 +140,11 @@ class LoanControllerTest extends ControllerTestBase {
 
     @Test
     @WithMockUser(roles = "MANAGER")
-    void changeStatus_pendingToApproved_saves() throws Exception {
+    void changeStatus_pendingToRejected_saves() throws Exception {
         Loan l = new Loan(); l.setId(1L); l.setStatus("В ожидании");
         when(loanService.findById(1L)).thenReturn(l);
 
-        mvc.perform(post("/loans/1/status").with(csrf()).param("status", "Одобрен"))
+        mvc.perform(post("/loans/1/status").with(csrf()).param("status", "Отклонен"))
                 .andExpect(status().is3xxRedirection());
         verify(loanService).save(l);
     }
@@ -190,16 +190,41 @@ class LoanControllerTest extends ControllerTestBase {
 
     @Test
     @WithMockUser(roles = "MANAGER")
-    void changeStatus_confirmedToIssued_saves() throws Exception {
+    void changeStatus_confirmedToIssued_notAllowed() throws Exception {
         Loan l = new Loan(); l.setId(1L); l.setStatus("Ожидает подтверждения"); l.setClient(new Client());
         l.setAmount(BigDecimal.TEN); l.setRate(BigDecimal.ONE);
 
         when(loanService.findById(1L)).thenReturn(l);
-        when(loanService.getItemName(l)).thenReturn("Phone");
 
         mvc.perform(post("/loans/1/status").with(csrf()).param("status", "Выдан"))
-                .andExpect(status().is3xxRedirection());
-        verify(loanService).save(l);
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("error"));
+        verify(loanService, never()).save(any());
+        assertEquals("Ожидает подтверждения", l.getStatus());
+    }
+
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void changeStatus_issuedToOnSale_notAllowed() throws Exception {
+        Loan l = new Loan(); l.setId(1L); l.setStatus("Выдан"); l.setClient(new Client());
+        when(loanService.findById(1L)).thenReturn(l);
+
+        mvc.perform(post("/loans/1/status").with(csrf()).param("status", "На продаже"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("error"));
+        verify(loanService, never()).save(any());
+    }
+
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void changeStatus_pendingToAwaitingConfirmation_notAllowed() throws Exception {
+        Loan l = new Loan(); l.setId(1L); l.setStatus("В ожидании");
+        when(loanService.findById(1L)).thenReturn(l);
+
+        mvc.perform(post("/loans/1/status").with(csrf()).param("status", "Ожидает подтверждения"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("error"));
+        verify(loanService, never()).save(any());
     }
 
     @Test
@@ -292,5 +317,65 @@ class LoanControllerTest extends ControllerTestBase {
                 .andExpect(flash().attributeExists("error"));
 
         verify(loanService, never()).delete(any());
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "user")
+    void details_missingLoanAsClient_redirectsToClientLoans() throws Exception {
+        when(loanService.findById(99L)).thenReturn(null);
+
+        mvc.perform(get("/loans/99"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/client/loans"))
+                .andExpect(flash().attribute("error", "Заем не найден"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "user")
+    void details_foreignLoanAsClient_redirectsToClientLoans() throws Exception {
+        User u = new User(); u.setId(1L);
+        Client me = new Client(); me.setId(1L);
+        Client other = new Client(); other.setId(2L);
+        Loan l = new Loan(); l.setId(5L); l.setClient(other);
+        when(userService.findByUsername("user")).thenReturn(u);
+        when(clientService.findByUserId(1L)).thenReturn(me);
+        when(loanService.findById(5L)).thenReturn(l);
+
+        mvc.perform(get("/loans/5"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/client/loans"));
+    }
+
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void edit_amountAboveEstimate_notSaved() throws Exception {
+        Loan l = new Loan(); l.setId(1L); l.setStatus("Выдан"); l.setAgreedAmount(new BigDecimal("1000"));
+        Collateral col = new Collateral(); col.setEstimatedPrice(new BigDecimal("2000"));
+        l.getCollaterals().add(col);
+        when(loanService.findById(1L)).thenReturn(l);
+
+        mvc.perform(post("/loans/1/edit").with(csrf()).param("amount", "5000"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loans/1/edit"))
+                .andExpect(flash().attribute("error", "Сумма займа не может быть больше оценки вещи"));
+
+        verify(loanService, never()).save(any());
+        assertEquals(0, new BigDecimal("1000").compareTo(l.getAgreedAmount()));
+    }
+
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void edit_dueDateBeforeCreated_notSaved() throws Exception {
+        Loan l = new Loan(); l.setId(1L); l.setStatus("Выдан");
+        l.setCreatedDate(LocalDate.of(2026, 11, 1)); l.setDueDate(LocalDate.of(2027, 1, 1));
+        when(loanService.findById(1L)).thenReturn(l);
+
+        mvc.perform(post("/loans/1/edit").with(csrf()).param("dueDate", "2026-10-01"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loans/1/edit"))
+                .andExpect(flash().attributeExists("error"));
+
+        verify(loanService, never()).save(any());
+        assertEquals(LocalDate.of(2027, 1, 1), l.getDueDate());
     }
 }

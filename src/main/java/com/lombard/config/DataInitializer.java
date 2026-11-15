@@ -1,6 +1,7 @@
 package com.lombard.config;
 
 import com.lombard.model.NumberSequence;
+import com.lombard.repository.LoanRepository;
 import com.lombard.repository.NumberSequenceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,19 @@ public class DataInitializer {
 
             if (created > 0) { // Если были созданы новые записи - пишу об этом в лог
                 log.info("DataInitializer: создано {} счетчиков в number_sequences", created);
+            }
+        };
+    }
+
+    // Статуса «Одобрен» больше нет: одобренная менеджером заявка ждет согласия клиента
+    // («Ожидает подтверждения»). Старые займы в этом статусе переношу при запуске,
+    // иначе их нельзя ни выдать, ни отклонить, ни удалить
+    @Bean
+    public CommandLineRunner migrateLegacyApprovedLoans(LoanRepository loanRepository) {
+        return args -> {
+            int updated = loanRepository.updateStatus("Одобрен", "Ожидает подтверждения");
+            if (updated > 0) {
+                log.info("DataInitializer: {} займов переведено из «Одобрен» в «Ожидает подтверждения»", updated);
             }
         };
     }

@@ -100,7 +100,9 @@ public class CollateralService {
         List<String> current = collateral.getPhotoUrls();
         if (current == null) return;
 
-        current.remove(photoUrl);
+        // удаляю файл, только если это действительно фото этого залога,
+        // иначе через запрос можно подсунуть путь к любому файлу на сервере
+        if (!current.remove(photoUrl)) return;
         collateral.setPhotoUrls(current);
         collateralRepository.save(collateral);
 

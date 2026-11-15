@@ -57,7 +57,7 @@ public class AccountController {
     }
 
     @PostMapping("/deposit")
-    public String deposit(@RequestParam BigDecimal amount,
+    public String deposit(@RequestParam("amount") String amountText,
                           @RequestParam(required = false) String comment,
                           Authentication auth,
                           RedirectAttributes ra) {
@@ -65,6 +65,11 @@ public class AccountController {
         if (client == null) {
             ra.addFlashAttribute("error", "Профиль клиента не найден");
             return "redirect:/";
+        }
+        BigDecimal amount = parseAmount(amountText);
+        if (amount == null) {
+            ra.addFlashAttribute("error", "Введите сумму числом, например 1500 или 1500.50");
+            return "redirect:/client/account";
         }
         try {
             accountService.deposit(client.getId(), amount, comment);
@@ -82,7 +87,7 @@ public class AccountController {
     }
 
     @PostMapping("/withdraw")
-    public String withdraw(@RequestParam BigDecimal amount,
+    public String withdraw(@RequestParam("amount") String amountText,
                            @RequestParam(required = false) String comment,
                            Authentication auth,
                            RedirectAttributes ra) {
@@ -90,6 +95,11 @@ public class AccountController {
         if (client == null) {
             ra.addFlashAttribute("error", "Профиль клиента не найден");
             return "redirect:/";
+        }
+        BigDecimal amount = parseAmount(amountText);
+        if (amount == null) {
+            ra.addFlashAttribute("error", "Введите сумму числом, например 1500 или 1500.50");
+            return "redirect:/client/account";
         }
         try {
             accountService.withdraw(client.getId(), amount, comment);
@@ -104,5 +114,14 @@ public class AccountController {
             ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/client/account";
+    }
+
+    private BigDecimal parseAmount(String text) {
+        if (text == null || text.isBlank()) return null;
+        try {
+            return new BigDecimal(text.trim().replace(',', '.'));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }
