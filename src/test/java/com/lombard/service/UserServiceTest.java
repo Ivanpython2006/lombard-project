@@ -30,6 +30,9 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private NotificationRepository notificationRepository;
+
     // Настоящий BCrypt обернутый в spy: можно и проверять реальное шифрование и подменять ответы.
     @Spy
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -38,16 +41,20 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, passwordEncoder, numberSequenceService);
+        userService = new UserService(userRepository, passwordEncoder, numberSequenceService, notificationRepository);
     }
 
+    // сначала удаляются уведомления пользователя, потом сама учетная запись
     @Test
-    void delete_existingUser_deletes() {
+    void delete_existingUser_deletesNotificationsThenUser() {
         User u = new User(); u.setId(1L); u.setUsername("test");
         when(userRepository.findById(1L)).thenReturn(Optional.of(u));
 
         userService.delete(1L, "admin");
-        verify(userRepository).deleteById(1L);
+
+        var order = inOrder(notificationRepository, userRepository);
+        order.verify(notificationRepository).deleteByUserId(1L);
+        order.verify(userRepository).deleteById(1L);
     }
 
     @Test

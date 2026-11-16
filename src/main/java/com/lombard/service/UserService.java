@@ -1,6 +1,7 @@
 package com.lombard.service;
 
 import com.lombard.model.User;
+import com.lombard.repository.NotificationRepository;
 import com.lombard.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,13 +18,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final NumberSequenceService numberSequenceService;
+    private final NotificationRepository notificationRepository;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       NumberSequenceService numberSequenceService) {
+                       NumberSequenceService numberSequenceService,
+                       NotificationRepository notificationRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.numberSequenceService = numberSequenceService;
+        this.notificationRepository = notificationRepository;
     }
 
     @Transactional
@@ -103,11 +107,13 @@ public class UserService {
         if (currentUsername != null && currentUsername.equals(target.getUsername())) {
             throw new IllegalStateException("Нельзя удалить самого себя");
         }
-        userRepository.deleteById(id);
+        delete(id);
     }
 
     @Transactional
     public void delete(Long id) {
+        // уведомления ссылаются на пользователя, без их удаления база не даст удалить учетную запись
+        notificationRepository.deleteByUserId(id);
         userRepository.deleteById(id);
     }
 

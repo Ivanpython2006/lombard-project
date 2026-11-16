@@ -177,4 +177,18 @@ class ServiceIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusDays(1).atStartOfDay(),
                 LocalDate.now().plusDays(1).atTime(23, 59)));
     }
+
+    // менеджера с уведомлениями можно удалить: уведомления удаляются вместе с ним
+    @Test
+    void userService_deleteManagerWithNotifications_deletesBoth() {
+        User manager = userService.register("manager2", "secret1", "MANAGER");
+        notificationService.notifyUser(manager, "LOAN_CREATED_STAFF", "INFO", "L1");
+        assertEquals(1, notificationRepository.findByUserIdOrderByCreatedAtDesc(manager.getId()).size());
+
+        userService.delete(manager.getId(), "admin");
+        userRepository.flush(); // без удаления уведомлений здесь сработал бы внешний ключ
+
+        assertFalse(userRepository.existsById(manager.getId()));
+        assertTrue(notificationRepository.findByUserIdOrderByCreatedAtDesc(manager.getId()).isEmpty());
+    }
 }
