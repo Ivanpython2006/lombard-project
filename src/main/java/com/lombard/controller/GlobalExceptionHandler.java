@@ -6,10 +6,12 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -34,6 +36,22 @@ public class GlobalExceptionHandler {
     public String handleAccessDenied(AccessDeniedException ex) {
         log.warn("403: {}", ex.getMessage());
         return "error/403";
+    }
+
+    @ExceptionHandler(ServletRequestBindingException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleRequestBinding(Model model) {
+        model.addAttribute("error", "Некорректный запрос");
+        model.addAttribute("message", "Проверьте, что все обязательные поля заполнены, и повторите отправку.");
+        return "error";
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public String handleUploadSize(Model model) {
+        model.addAttribute("error", "Превышен размер загрузки");
+        model.addAttribute("message", "Загрузите файлы размером до 10 МБ каждый и до 50 МБ на запрос.");
+        return "error";
     }
 
     // ловлю ошибки целостности БД (например уникальные поля)

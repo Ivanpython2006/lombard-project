@@ -52,4 +52,18 @@ class GlobalExceptionHandlerTest {
                 handler.handleException(new RuntimeException("boom"), model));
         assertEquals("Внутренняя ошибка сервера", model.getAttribute("error"));
     }
+
+    @Test
+    void missingRequestField_promptsUserToCompleteForm() {
+        Model model = new ExtendedModelMap();
+        assertEquals("error", handler.handleRequestBinding(model));
+        assertEquals("Некорректный запрос", model.getAttribute("error"));
+    }
+
+    @Test
+    void oversizedUpload_showsUploadLimit() {
+        Model model = new ExtendedModelMap();
+        assertEquals("error", handler.handleUploadSize(model));
+        assertEquals("Превышен размер загрузки", model.getAttribute("error"));
+    }
 }
