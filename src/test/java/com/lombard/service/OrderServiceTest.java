@@ -168,6 +168,7 @@ class OrderServiceTest {
         order.setOrderNumber("O1"); order.setTotalAmount(new BigDecimal("1000"));
         order.getItems().add(new OrderItem(order, loan, "Телефон", new BigDecimal("1000")));
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.updateStatusIfUnchanged(1L, "Оплачен", "Отменён")).thenReturn(1);
         when(orderRepository.save(order)).thenReturn(order);
 
         orderService.changeStatus(1L, "Отменён");
@@ -175,6 +176,21 @@ class OrderServiceTest {
         verify(accountService).refund(eq(1L), eq(new BigDecimal("1000")), any());
         assertEquals("На продаже", loan.getStatus());
         assertEquals("Отменён", order.getStatus());
+    }
+
+    @Test
+    void changeStatus_concurrentCancellation_doesNotRefundAgain() {
+        Order order = new Order();
+        order.setId(1L);
+        order.setStatus("Оплачен");
+        order.setClient(client);
+        order.setTotalAmount(new BigDecimal("1000"));
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.updateStatusIfUnchanged(1L, "Оплачен", "Отменён")).thenReturn(0);
+
+        assertThrows(IllegalStateException.class, () -> orderService.changeStatus(1L, "Отменён"));
+        verify(accountService, never()).refund(any(), any(), any());
+        verify(orderRepository, never()).save(any());
     }
 
     // доставленный заказ уже нельзя ни отменить, ни вернуть в «Оплачен»

@@ -53,7 +53,7 @@ class LoanControllerTest extends ControllerTestBase {
 
     @Test
     @WithMockUser(roles = "MANAGER")
-    void edit_withDateAndBadDate_redirects() throws Exception {
+    void edit_withValidDate_redirects() throws Exception {
         Loan l = new Loan(); l.setId(1L); l.setStatus("В ожидании");
         when(loanService.findById(1L)).thenReturn(l);
 
@@ -64,10 +64,6 @@ class LoanControllerTest extends ControllerTestBase {
                         .param("dueDate", "2026-12-31"))
                 .andExpect(status().is3xxRedirection());
 
-        mvc.perform(post("/loans/1/edit").with(csrf())
-                        .param("amount", "1000")
-                        .param("dueDate", "invalid-date"))
-                .andExpect(status().is3xxRedirection());
     }
 
     @Test
@@ -104,10 +100,9 @@ class LoanControllerTest extends ControllerTestBase {
         assertEquals("Закрыт", l.getStatus());
     }
 
-    // кривую дату просто игнорю остальное сохраняется
     @Test
     @WithMockUser(roles = "MANAGER")
-    void edit_badDate_savesWithoutDate() throws Exception {
+    void edit_badDate_rejectsWithoutSaving() throws Exception {
         Loan l = new Loan(); l.setId(1L);
         when(loanService.findById(1L)).thenReturn(l);
 
@@ -115,9 +110,10 @@ class LoanControllerTest extends ControllerTestBase {
                         .param("amount", "1000")
                         .param("rate", "10")
                         .param("dueDate", "invalid-date"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(redirectedUrl("/loans/1/edit"))
+                .andExpect(flash().attribute("error", "Укажите корректную дату возврата"));
 
-        verify(loanService).save(l);
+        verify(loanService, never()).save(any());
     }
 
     @Test
@@ -243,6 +239,25 @@ class LoanControllerTest extends ControllerTestBase {
     }
 
     // одобрить можно только новую заявку: закрытый заем не должен снова стать «Ожидает подтверждения»
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void approve_malformedRateOrNegativeAmount_rejectsWithoutSaving() throws Exception {
+        Loan loan = new Loan();
+        loan.setStatus("В ожидании");
+        loan.setAmount(new BigDecimal("800"));
+        when(loanService.findById(1L)).thenReturn(loan);
+
+        mvc.perform(post("/loans/1/approve").with(csrf())
+                        .param("rate", "1x5").param("estimatedPrice", "1000").param("approvedAmount", "800"))
+                .andExpect(redirectedUrl("/loans/1/approve"))
+                .andExpect(flash().attributeExists("error"));
+        mvc.perform(post("/loans/1/approve").with(csrf())
+                        .param("rate", "10").param("estimatedPrice", "1000").param("approvedAmount", "-100"))
+                .andExpect(redirectedUrl("/loans/1/approve"))
+                .andExpect(flash().attributeExists("error"));
+        verify(loanService, never()).save(any(Loan.class));
+    }
+
     @Test
     @WithMockUser(roles = "MANAGER")
     void approve_closedLoan_notChanged() throws Exception {

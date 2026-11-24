@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -77,17 +78,6 @@ public class LoanController {
         return auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
                         || a.getAuthority().equals("ROLE_MANAGER"));
-    }
-
-    private BigDecimal parseDecimal(String value) {
-        if (value == null || value.isBlank()) return BigDecimal.ZERO;
-        try {
-            String cleaned = value.replaceAll("[^0-9.-]", "").trim();
-            if (cleaned.isEmpty()) return BigDecimal.ZERO;
-            return new BigDecimal(cleaned);
-        } catch (NumberFormatException e) {
-            return BigDecimal.ZERO;
-        }
     }
 
     @GetMapping
@@ -242,18 +232,26 @@ public class LoanController {
     @PostMapping("/{id}/approve")
     @Transactional
     public String approveLoan(@PathVariable Long id,
-                              @RequestParam(defaultValue = "0") String rate,
-                              @RequestParam(defaultValue = "0") String estimatedPrice,
-                              @RequestParam(defaultValue = "0") String approvedAmount,
+                              @RequestParam(defaultValue = "") String rate,
+                              @RequestParam(defaultValue = "") String estimatedPrice,
+                              @RequestParam(defaultValue = "") String approvedAmount,
                               @RequestParam(required = false) String collateralName,
                               @RequestParam(required = false) String collateralDescription,
                               Authentication auth,
                               RedirectAttributes ra) {
         if (!isAdminOrManager(auth)) return "redirect:/loans";
 
-        BigDecimal rateVal = parseDecimal(rate);
-        BigDecimal estimatedPriceVal = parseDecimal(estimatedPrice);
-        BigDecimal approvedAmountVal = parseDecimal(approvedAmount);
+        BigDecimal rateVal;
+        BigDecimal estimatedPriceVal;
+        BigDecimal approvedAmountVal;
+        try {
+            rateVal = new BigDecimal(rate.strip());
+            estimatedPriceVal = new BigDecimal(estimatedPrice.strip());
+            approvedAmountVal = new BigDecimal(approvedAmount.strip());
+        } catch (NumberFormatException e) {
+            ra.addFlashAttribute("error", "Укажите числа в полях ставки, оценки и суммы займа");
+            return "redirect:/loans/" + id + "/approve";
+        }
 
         if (estimatedPriceVal.compareTo(BigDecimal.ZERO) <= 0) {
             ra.addFlashAttribute("error", "Укажите корректную оценку вещи (больше 0)");
@@ -275,11 +273,13 @@ public class LoanController {
             return "redirect:/loans/" + id;
         }
 
-        BigDecimal safeAmount = (approvedAmountVal != null && approvedAmountVal.compareTo(BigDecimal.ZERO) > 0)
-                ? approvedAmountVal : loan.getAmount();
+        if (approvedAmountVal.compareTo(BigDecimal.ONE) < 0) {
+            ra.addFlashAttribute("error", "Сумма займа должна быть не меньше 1 ₽");
+            return "redirect:/loans/" + id + "/approve";
+        }
 
-        // ломбард не дает больше чем стоит вещь
-        if (safeAmount == null || safeAmount.compareTo(estimatedPriceVal) > 0) {
+        BigDecimal safeAmount = approvedAmountVal;
+        if (safeAmount.compareTo(estimatedPriceVal) > 0) {
             ra.addFlashAttribute("error", "Сумма займа не может быть больше оценки вещи");
             return "redirect:/loans/" + id + "/approve";
         }
@@ -388,29 +388,41 @@ public class LoanController {
             return "redirect:/loans";
         }
 
+        if (amount != null && amount.compareTo(BigDecimal.ONE) < 0) {
+            ra.addFlashAttribute("error", "Сумма займа должна быть не меньше 1 ₽");
+            return "redirect:/loans/" + id + "/edit";
+        }
+        if (rate != null && (rate.signum() < 0 || rate.compareTo(BigDecimal.valueOf(100)) > 0)) {
+            ra.addFlashAttribute("error", "Ставка должна быть в диапазоне 0-100%");
+            return "redirect:/loans/" + id + "/edit";
+        }
+
         BigDecimal estimated = loan.getCollaterals() != null && !loan.getCollaterals().isEmpty()
                 ? loan.getCollaterals().get(0).getEstimatedPrice() : null;
         if (amount != null && estimated != null && amount.compareTo(estimated) > 0) {
             ra.addFlashAttribute("error", "Сумма займа не может быть больше оценки вещи");
             return "redirect:/loans/" + id + "/edit";
         }
+        LocalDate parsedDue = null;
         if (dueDate != null && !dueDate.isBlank()) {
             try {
-                LocalDate parsedDue = LocalDate.parse(dueDate);
+                parsedDue = LocalDate.parse(dueDate);
                 if (loan.getCreatedDate() != null && parsedDue.isBefore(loan.getCreatedDate())) {
                     ra.addFlashAttribute("error", "Дата возврата не может быть раньше даты создания займа");
                     return "redirect:/loans/" + id + "/edit";
                 }
-            } catch (java.time.format.DateTimeParseException ignored) {
+            } catch (DateTimeParseException e) {
+                ra.addFlashAttribute("error", "Укажите корректную дату возврата");
+                return "redirect:/loans/" + id + "/edit";
             }
         }
 
         // после одобрения правится одобренная сумма, до него - запрошенная
-        if (amount != null && amount.compareTo(BigDecimal.ZERO) > 0) {
+        if (amount != null) {
             if (loan.getAgreedAmount() != null) loan.setAgreedAmount(amount);
             else loan.setAmount(amount);
         }
-        if (rate != null && rate.compareTo(BigDecimal.ZERO) >= 0) loan.setRate(rate);
+        if (rate != null) loan.setRate(rate);
         // через форму редактирования действуют те же правила переходов, что и в changeStatus
         String oldStatus = loan.getStatus();
         if (status != null && !status.isBlank() && !status.equals(oldStatus)) {
@@ -421,10 +433,8 @@ public class LoanController {
             }
             loan.setStatus(status);
         }
-        if (dueDate != null && !dueDate.isBlank()) {
-            try {
-                loan.setDueDate(LocalDate.parse(dueDate));
-            } catch (Exception ignored) {}
+        if (parsedDue != null) {
+            loan.setDueDate(parsedDue);
         }
 
         loanService.save(loan);

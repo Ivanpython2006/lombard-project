@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<OrderItem> findByLoanId(Long loanId);
+    boolean existsByItemPhoto(String itemPhoto);
 }

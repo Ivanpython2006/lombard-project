@@ -1,5 +1,6 @@
 package com.lombard.service;
 
+import com.lombard.repository.OrderItemRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,12 @@ public class FileStorageService {
 
     @Value("${app.upload.dir}")
     private String uploadDir;
+
+    private final OrderItemRepository orderItemRepository;
+
+    public FileStorageService(OrderItemRepository orderItemRepository) {
+        this.orderItemRepository = orderItemRepository;
+    }
 
     public String save(MultipartFile file, String prefix) {
         if (file == null || file.isEmpty()) return null;
@@ -85,7 +92,7 @@ public class FileStorageService {
             Path dir = Paths.get(uploadDir).toAbsolutePath().normalize();
             Path target = dir.resolve(photoUrl.substring("/uploads/".length())).normalize();
             // удаляю только файлы прямо в папке загрузок: путь вида "/uploads/../pom.xml" игнорирую
-            if (!dir.equals(target.getParent())) return;
+            if (!dir.equals(target.getParent()) || orderItemRepository.existsByItemPhoto(photoUrl)) return;
             Files.deleteIfExists(target);
         } catch (IOException | InvalidPathException e) {
             System.err.println("Не удалось удалить файл " + photoUrl + ": " + e.getMessage());

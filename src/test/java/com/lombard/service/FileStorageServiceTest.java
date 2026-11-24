@@ -1,5 +1,6 @@
 package com.lombard.service;
 
+import com.lombard.repository.OrderItemRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
@@ -11,12 +12,14 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 //Тесты проверки загружаемых фотографий и их удаления (удаление проверяю во временной папке)
 class FileStorageServiceTest {
 
     private FileStorageService createService() {
-        FileStorageService service = new FileStorageService();
+        FileStorageService service = new FileStorageService(mock(OrderItemRepository.class));
         ReflectionTestUtils.setField(service, "uploadDir", "./uploads-test/");
         return service;
     }
@@ -51,7 +54,7 @@ class FileStorageServiceTest {
     @Test
     void delete_fileInUploadDir_removesFile(@TempDir Path tmp) throws IOException {
         Path photo = Files.writeString(tmp.resolve("item_1_0_abc.jpg"), "photo");
-        FileStorageService service = new FileStorageService();
+        FileStorageService service = new FileStorageService(mock(OrderItemRepository.class));
         ReflectionTestUtils.setField(service, "uploadDir", tmp.toString());
 
         service.delete("/uploads/item_1_0_abc.jpg");
@@ -59,12 +62,25 @@ class FileStorageServiceTest {
         assertThat(photo).doesNotExist();
     }
 
+    @Test
+    void delete_photoUsedByOrder_keepsFile(@TempDir Path tmp) throws IOException {
+        Path photo = Files.writeString(tmp.resolve("order-photo.jpg"), "photo");
+        OrderItemRepository orderItems = mock(OrderItemRepository.class);
+        when(orderItems.existsByItemPhoto("/uploads/order-photo.jpg")).thenReturn(true);
+        FileStorageService service = new FileStorageService(orderItems);
+        ReflectionTestUtils.setField(service, "uploadDir", tmp.toString());
+
+        service.delete("/uploads/order-photo.jpg");
+
+        assertThat(photo).exists();
+    }
+
     // через ".." нельзя выйти из папки загрузок и удалить чужой файл
     @Test
     void delete_pathOutsideUploadDir_keepsFile(@TempDir Path tmp) throws IOException {
         Path uploads = Files.createDirectory(tmp.resolve("uploads"));
         Path secret = Files.writeString(tmp.resolve("secret.txt"), "data");
-        FileStorageService service = new FileStorageService();
+        FileStorageService service = new FileStorageService(mock(OrderItemRepository.class));
         ReflectionTestUtils.setField(service, "uploadDir", uploads.toString());
 
         service.delete("/uploads/../secret.txt");

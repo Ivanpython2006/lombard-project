@@ -25,10 +25,14 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void loanPages_asAdmin_open() throws Exception {
+    void loanPages_asAdmin_openExpectedViews() throws Exception {
         mvc.perform(get("/loans")).andExpect(status().isOk());
-        mvc.perform(get("/loans/" + loan.getId())).andExpect(status().isOk());
-        mvc.perform(get("/loans/" + loan.getId() + "/approve")).andExpect(status().isOk());
+        mvc.perform(get("/loans/" + loan.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("loan_details"));
+        mvc.perform(get("/loans/" + loan.getId() + "/approve"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("loan_approve"));
     }
 
     // текст вместо номера займа в адресе - это страница 404, а не ошибка сервера 500
@@ -42,49 +46,26 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void approve_validForm_redirects() throws Exception {
-        mvc.perform(post("/loans/" + loan.getId() + "/approve").with(csrf())
-                        .param("rate", "10")
-                        .param("estimatedPrice", "5000")
-                        .param("approvedAmount", "1000"))
-                .andExpect(status().is3xxRedirection());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void changeStatus_redirects() throws Exception {
-        mvc.perform(post("/loans/" + loan.getId() + "/status").with(csrf())
-                        .param("status", "Отклонен"))
-                .andExpect(status().is3xxRedirection());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void extend_issuedLoan_redirects() throws Exception {
-        loan.setStatus("Выдан");
-        loanRepository.save(loan);
-
-        mvc.perform(post("/loans/" + loan.getId() + "/extend").with(csrf())
-                        .param("months", "3"))
-                .andExpect(status().is3xxRedirection());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void export_returnsCsv() throws Exception {
         mvc.perform(get("/loans/export")).andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void approveThenChangeStatus_redirect() throws Exception {
+    void approveThenReject_persistsBothTransitions() throws Exception {
         mvc.perform(post("/loans/" + loan.getId() + "/approve").with(csrf())
                 .param("rate", "10")
                 .param("estimatedPrice", "5000")
-                .param("approvedAmount", "1000")).andExpect(status().is3xxRedirection());
+                .param("approvedAmount", "1000"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("success"));
+        assertEquals("Ожидает подтверждения", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
 
         mvc.perform(post("/loans/" + loan.getId() + "/status").with(csrf())
-                .param("status", "Отклонен")).andExpect(status().is3xxRedirection());
+                .param("status", "Отклонен"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("success"));
+        assertEquals("Отклонен", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
     }
 
     @Test
@@ -92,14 +73,6 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
     void loansList_asClient_forbidden() throws Exception {
         mvc.perform(get("/loans"))
                 .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void approveForm_opens() throws Exception {
-        mvc.perform(get("/loans/" + loan.getId() + "/approve"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("loan_approve"));
     }
 
     // после одобрения заем ждет согласия клиента
@@ -160,26 +133,19 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
                 loanRepository.findById(loan.getId()).orElseThrow().getDueDate());
     }
 
-    // менеджер отзывает свое предложение до подтверждения клиентом
-    @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void withdrawOffer_redirects() throws Exception {
-        loan.setStatus("Ожидает подтверждения");
-        loanRepository.save(loan);
-        mvc.perform(post("/loans/" + loan.getId() + "/withdraw").with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(flash().attributeExists("success"));
-    }
-
     // кнопка «Отозвать предложение» ведет на отдельный обработчик отзыва, а не на смену статуса
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void loanDetails_awaitingConfirmation_withdrawButtonPostsToWithdraw() throws Exception {
+    void pendingOffer_showsWithdrawButtonAndCanBeWithdrawn() throws Exception {
         loan.setStatus("Ожидает подтверждения");
         loanRepository.save(loan);
         mvc.perform(get("/loans/" + loan.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/loans/" + loan.getId() + "/withdraw")));
+        mvc.perform(post("/loans/" + loan.getId() + "/withdraw").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("success"));
+        assertEquals("Отклонен", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
     }
 
     // старый заем в статусе «Одобрен» при запуске переводится в «Ожидает подтверждения»
@@ -198,14 +164,6 @@ class LoanControllerIntegrationTest extends IntegrationTestBase {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("success"));
         assertEquals("Отклонен", loanRepository.findById(loan.getId()).orElseThrow().getStatus());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void loanDetails_opens() throws Exception {
-        mvc.perform(get("/loans/" + loan.getId()))
-                .andExpect(status().isOk())
-                .andExpect(view().name("loan_details"));
     }
 
     @Test

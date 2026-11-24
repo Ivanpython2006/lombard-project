@@ -25,6 +25,15 @@ public class OrderItem {
     @Column(name = "item_price", nullable = false, precision = 19, scale = 2)
     private BigDecimal itemPrice;
 
+    @Column(name = "item_number", length = 20)
+    private String itemNumber;
+
+    @Column(name = "item_description", columnDefinition = "text")
+    private String itemDescription;
+
+    @Column(name = "item_photo", length = 500)
+    private String itemPhoto;
+
     public OrderItem() {}
 
     public OrderItem(Order order, Loan loan, String itemName, BigDecimal itemPrice) {
@@ -32,6 +41,12 @@ public class OrderItem {
         this.loan = loan;
         this.itemName = itemName;
         this.itemPrice = itemPrice;
+        if (loan != null && !loan.getCollaterals().isEmpty()) {
+            Collateral collateral = loan.getCollaterals().get(0);
+            this.itemNumber = collateral.getItemNumber();
+            this.itemDescription = collateral.getDescription();
+            this.itemPhoto = collateral.getMainPhoto();
+        }
     }
 
     public Long getId() { return id; }
@@ -44,4 +59,7 @@ public class OrderItem {
     public void setItemName(String itemName) { this.itemName = itemName; }
     public BigDecimal getItemPrice() { return itemPrice; }
     public void setItemPrice(BigDecimal itemPrice) { this.itemPrice = itemPrice; }
+    public String getItemNumber() { return itemNumber; }
+    public String getItemDescription() { return itemDescription; }
+    public String getItemPhoto() { return itemPhoto; }
 }

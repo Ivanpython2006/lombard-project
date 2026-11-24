@@ -118,25 +118,26 @@
                     <td>
                         <div class="order-photo-cell">
                             <div class="photo-grid d-block m-0"
-                                 th:if="${item.loan != null and not #lists.isEmpty(item.loan.collaterals) and not #lists.isEmpty(item.loan.collaterals[0].photoUrls)}"
-                                 th:attr="data-viewer-info=${'{&quot;name&quot;:&quot;' + (item.loan.collaterals[0].name != null ? item.loan.collaterals[0].name : '') + '&quot;,&quot;number&quot;:&quot;' + (item.loan.collaterals[0].itemNumber != null ? item.loan.collaterals[0].itemNumber : '') + '&quot;,&quot;description&quot;:&quot;' + (item.loan.collaterals[0].description != null ? item.loan.collaterals[0].description : '') + '&quot;,&quot;price&quot;:&quot;' + (item.loan.collaterals[0].estimatedPrice != null ? item.loan.collaterals[0].estimatedPrice : '') + '&quot;}'}">
+                                 th:if="${item.itemPhoto != null}"
+                                 th:attr="data-order-item-name=${item.itemName}, data-order-item-number=${item.itemNumber},
+                                          data-order-item-description=${item.itemDescription}, data-order-item-price=${item.itemPrice}">
                                 <div class="photo-thumb-block">
-                                    <img th:src="${item.loan.collaterals[0].mainPhoto}" alt=""/>
+                                    <img th:src="${item.itemPhoto}" alt=""/>
                                 </div>
                             </div>
-                            <div th:if="${item.loan == null or #lists.isEmpty(item.loan.collaterals) or #lists.isEmpty(item.loan.collaterals[0].photoUrls)}"
+                            <div th:if="${item.itemPhoto == null}"
                                  class="no-photo-box no-photo-thumb"
                                  data-ru="Нет фото" data-en="No photo">Нет фото</div>
                         </div>
                     </td>
                     <td>
-                        <b class="text-accent" th:if="${item.loan != null and not #lists.isEmpty(item.loan.collaterals)}"
-                           th:text="${item.loan.collaterals[0].itemNumber}"></b>
-                        <span th:if="${item.loan == null or #lists.isEmpty(item.loan.collaterals)}">-</span>
+                        <b class="text-accent" th:if="${item.itemNumber != null}"
+                           th:text="${item.itemNumber}"></b>
+                        <span th:if="${item.itemNumber == null}">-</span>
                     </td>
                     <td th:text="${item.itemName}"></td>
                     <td class="mw-300 text-break text-left"
-                        th:text="${item.loan != null and not #lists.isEmpty(item.loan.collaterals) ? item.loan.collaterals[0].description : '-'}"></td>
+                        th:text="${item.itemDescription ?: '-'}"></td>
                     <td class="text-right"
                         th:text="${#numbers.formatDecimal(item.itemPrice, 1, 2)} + ' ₽'"></td>
                 </tr>

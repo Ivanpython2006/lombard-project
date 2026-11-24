@@ -123,6 +123,9 @@ public class OrderService {
         if (!ALLOWED_TRANSITIONS.getOrDefault(oldStatus, Set.of()).contains(newStatus)) {
             throw new IllegalStateException("Нельзя перевести заказ из «" + oldStatus + "» в «" + newStatus + "»");
         }
+        if (orderRepository.updateStatusIfUnchanged(orderId, oldStatus, newStatus) == 0) {
+            throw new IllegalStateException("Статус заказа уже изменился. Проверьте текущий статус.");
+        }
 
         if ("Отменён".equals(newStatus)) {
             if (order.getClient() != null && order.getTotalAmount() != null

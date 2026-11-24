@@ -49,12 +49,6 @@
             <img id="viewerImg" class="photo-viewer-img" src="" alt=""/>
         </div>
 
-        <div class="photo-viewer-zoom">
-            <button type="button" onclick="viewerZoom(-0.25)" title="-">−</button>
-            <span class="zoom-label" id="viewerZoomLabel" onclick="viewerResetZoom()" title="Сбросить">100%</span>
-            <button type="button" onclick="viewerZoom(0.25)" title="+">+</button>
-        </div>
-
         <div class="photo-viewer-info" id="viewerInfo">
             <div class="info-title" id="viTitle">—</div>
             <div class="info-number" id="viNumber">—</div>
@@ -181,26 +175,11 @@
             let viewerPhotos = [];
             let viewerIndex = 0;
             let viewerInfoData = null;
-            let viewerScale = 1;
-            let viewerTx = 0;
-            let viewerTy = 0;
-            let dragStart = null;
 
-            function applyViewerTransform() {
-                const img = document.getElementById('viewerImg');
-                if (!img) return;
-                img.style.transform = 'translate(' + viewerTx + 'px, ' + viewerTy + 'px) scale(' + viewerScale + ')';
-                const lbl = document.getElementById('viewerZoomLabel');
-                if (lbl) lbl.textContent = Math.round(viewerScale * 100) + '%';
-            }
             function showViewerPhoto() {
                 const img = document.getElementById('viewerImg');
                 if (!img || !viewerPhotos.length) return;
                 img.src = viewerPhotos[viewerIndex];
-                viewerScale = 1;
-                viewerTx = 0;
-                viewerTy = 0;
-                applyViewerTransform();
                 const prev = document.querySelector('.photo-viewer-prev');
                 const next = document.querySelector('.photo-viewer-next');
                 const many = viewerPhotos.length > 1;
@@ -227,16 +206,6 @@
                 if (viewerPhotos.length < 2) return;
                 viewerIndex = (viewerIndex + dir + viewerPhotos.length) % viewerPhotos.length;
                 showViewerPhoto();
-            };
-            window.viewerZoom = function(delta) {
-                viewerScale = Math.min(5, Math.max(0.25, viewerScale + delta));
-                applyViewerTransform();
-            };
-            window.viewerResetZoom = function() {
-                viewerScale = 1;
-                viewerTx = 0;
-                viewerTy = 0;
-                applyViewerTransform();
             };
 
             function escapeHtml(s) {
@@ -331,6 +300,13 @@
                     let info = null;
                     if (grid.dataset && grid.dataset.viewerInfo) {
                         try { info = JSON.parse(grid.dataset.viewerInfo); } catch (err) { info = null; }
+                    } else if (grid.dataset.orderItemName) {
+                        info = {
+                            name: grid.dataset.orderItemName,
+                            number: grid.dataset.orderItemNumber,
+                            description: grid.dataset.orderItemDescription,
+                            price: grid.dataset.orderItemPrice
+                        };
                     }
                     openPhotoViewer(urls, idx, info);
                 }
@@ -342,30 +318,12 @@
                 if (e.key === 'Escape') closePhotoViewer();
                 else if (e.key === 'ArrowLeft') viewerStep(-1);
                 else if (e.key === 'ArrowRight') viewerStep(1);
-                else if (e.key === '+' || e.key === '=') viewerZoom(0.25);
-                else if (e.key === '-') viewerZoom(-0.25);
-                else if (e.key === '0') viewerResetZoom();
             });
 
             const stage = document.getElementById('viewerStage');
             if (stage) {
-                stage.addEventListener('wheel', function(e) {
-                    e.preventDefault();
-                    const delta = e.deltaY < 0 ? 0.15 : -0.15;
-                    viewerZoom(delta);
-                }, { passive: false });
-                stage.addEventListener('mousedown', function(e) {
-                    if (e.target.id !== 'viewerImg') return;
-                    dragStart = { x: e.clientX - viewerTx, y: e.clientY - viewerTy };
-                    e.preventDefault();
-                });
-                document.addEventListener('mousemove', function(e) {
-                    if (!dragStart) return;
-                    viewerTx = e.clientX - dragStart.x;
-                    viewerTy = e.clientY - dragStart.y;
-                    applyViewerTransform();
-                });
-                document.addEventListener('mouseup', function() { dragStart = null; });
+                // зум отключен: прокрутка внутри просмотрщика ничего не делает
+                stage.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
                 stage.addEventListener('click', function(e) {
                     if (e.target === stage) closePhotoViewer();
                 });

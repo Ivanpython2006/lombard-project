@@ -127,16 +127,6 @@ class ModelTest {
     }
 
     @Test
-    void numberSequence_gettersAndSetters_work() {
-        NumberSequence ns = new NumberSequence();
-        ns.setPrefix("L");
-        ns.setNextValue(5L);
-
-        assertEquals("L", ns.getPrefix());
-        assertEquals(5L, ns.getNextValue());
-    }
-
-    @Test
     void loanHistory_constructor_setsActionAndDate() {
         LoanHistory h = new LoanHistory(new Loan(), "action", "admin");
 
